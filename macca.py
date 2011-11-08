@@ -5,25 +5,63 @@ import ctypes
 import ctypes.util
 import copy
 
+
+# CoreFoundation and CoreAudio libraries along with their function
+# prototypes.
+
 def _load_framework(name):
     return ctypes.cdll.LoadLibrary(ctypes.util.find_library(name))
 _coreaudio = _load_framework('AudioToolbox')
 _corefoundation = _load_framework('CoreFoundation')
 
-def cfstr_to_string(cfstr):
-    getcstring = _corefoundation.CFStringGetCStringPtr
-    getcstring.restype = ctypes.c_char_p
-    getcstring.argtypes = [ctypes.c_void_p, ctypes.c_int]
-    return getcstring(cfstr, 0)
+# Convert CFStrings to C strings. 
+_corefoundation.CFStringGetCStringPtr.restype = ctypes.c_char_p
+_corefoundation.CFStringGetCStringPtr.argtypes = [ctypes.c_void_p, ctypes.c_int]
 
-def release(obj):
-    release = _corefoundation.CFRelease
-    release.argtypes = [ctypes.c_void_p]
-    release(obj)
+# Free memory.
+_corefoundation.CFRelease.argtypes = [ctypes.c_void_p]
+
+# Create a file:// URL.
+_corefoundation.CFURLCreateFromFileSystemRepresentation.restype = \
+    ctypes.c_void_p
+_corefoundation.CFURLCreateFromFileSystemRepresentation.argtypes = \
+    [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_bool]
+
+# Get a string representation of a URL.
+_corefoundation.CFURLGetString.restype = ctypes.c_void_p
+_corefoundation.CFURLGetString.argtypes = [ctypes.c_void_p]
+
+# Open an audio file for reading.
+_coreaudio.ExtAudioFileOpenURL.restype = ctypes.c_int
+_coreaudio.ExtAudioFileOpenURL.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+# Set audio file property.
+_coreaudio.ExtAudioFileSetProperty.restype = ctypes.c_int
+_coreaudio.ExtAudioFileSetProperty.argtypes = \
+    [ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_void_p]
+
+# Get audio file property.
+_coreaudio.ExtAudioFileGetProperty.restype = ctypes.c_int
+_coreaudio.ExtAudioFileGetProperty.argtypes = \
+    [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p]
+
+# Read from an audio file.
+_coreaudio.ExtAudioFileRead.restype = ctypes.c_int
+_coreaudio.ExtAudioFileRead.argtypes = \
+    [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+
+# Close/free an audio file.
+_coreaudio.ExtAudioFileDispose.restype = ctypes.c_int
+_coreaudio.ExtAudioFileDispose.argtypes = [ctypes.c_void_p]
+
+
+# Check for errors in functions that return error codes.
 
 class MacError(Exception):
     pass
+
 def check(err):
+    """If err is nonzero, raise a MacError exception."""
     if err != 0:
         raise MacError(err)
 
@@ -35,26 +73,19 @@ class CFObject(object):
 
     def __del__(self):
         if _corefoundation:
-            release(self._obj)
+            _corefoundation.CFRelease(self._obj)
 
 class CFURL(CFObject):
     def __init__(self, filename):
         filename = os.path.abspath(os.path.expanduser(filename))
-        createurl = _corefoundation.CFURLCreateFromFileSystemRepresentation
-        createurl.restype = ctypes.c_void_p
-        createurl.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
-                              ctypes.c_bool]
-        url = createurl(
+        url = _corefoundation.CFURLCreateFromFileSystemRepresentation(
             0, filename, len(filename), False
         )
         super(CFURL, self).__init__(url)
     
     def __str__(self):
-        urlstr = _corefoundation.CFURLGetString
-        urlstr.argtypes = [ctypes.c_void_p]
-        urlstr.restype = ctypes.c_void_p
-        cfstr = urlstr(self._obj)
-        out = cfstr_to_string(cfstr)
+        cfstr = _corefoundation.CFURLGetString(self._obj)
+        out = _corefoundation.CFStringGetCStringPtr(cfstr, 0)
         # Resulting CFString does not need to be released according to docs.
         return out
 
@@ -102,36 +133,25 @@ PCM_IS_PACKED = 1 << 3
 class AudioFile(object):
     def __init__(self, url):
         file_obj = ctypes.c_void_p()
-        openurl = _coreaudio.ExtAudioFileOpenURL
-        openurl.restype = ctypes.c_int
-        openurl.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
-        check(openurl(url._obj, ctypes.byref(file_obj)))
+        check(_coreaudio.ExtAudioFileOpenURL(
+            url._obj, ctypes.byref(file_obj)
+        ))
         self._obj = file_obj
+        self.closed = False
 
     def set_client_format(self, desc):
         assert desc.mFormatID == AUDIO_ID_PCM
-        setprop = _coreaudio.ExtAudioFileSetProperty
-        setprop.restype = ctypes.c_int
-        setprop.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint,
-                            ctypes.c_void_p]
-        check(setprop(self._obj,
-                      CLIENT_DATA_FORMAT,
-                      ctypes.sizeof(desc),
-                      ctypes.byref(desc)))
+        check(_coreaudio.ExtAudioFileSetProperty(
+            self._obj, CLIENT_DATA_FORMAT, ctypes.sizeof(desc),
+            ctypes.byref(desc)
+        ))
 
     def get_file_format(self):
         desc = AudioStreamBasicDescription()
-
-        getprop = _coreaudio.ExtAudioFileGetProperty
-        getprop.restype = ctypes.c_int
-        getprop.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p,
-                            ctypes.c_void_p]
         size = ctypes.c_int(ctypes.sizeof(desc))
-        check(getprop(self._obj,
-                      FILE_DATA_FORMAT,
-                      ctypes.byref(size),
-                      ctypes.byref(desc)))
-
+        check(_coreaudio.ExtAudioFileGetProperty(
+            self._obj, FILE_DATA_FORMAT, ctypes.byref(size), ctypes.byref(desc)
+        ))
         return desc
 
     def read_data(self, blocksize=4096):
@@ -144,14 +164,10 @@ class AudioFile(object):
         buflist.mBuffers[0].mDataByteSize = blocksize
         buflist.mBuffers[0].mData = ctypes.cast(buf, ctypes.c_void_p)
 
-        afread = _coreaudio.ExtAudioFileRead
-        afread.restype = ctypes.c_int
-        afread.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
-
         while True:
-            check(afread(self._obj,
-                         ctypes.byref(frames),
-                         ctypes.byref(buflist)))
+            check(_coreaudio.ExtAudioFileRead(
+                self._obj, ctypes.byref(frames), ctypes.byref(buflist)
+            ))
             
             assert buflist.mNumberBuffers == 1
             size = buflist.mBuffers[0].mDataByteSize
@@ -163,7 +179,14 @@ class AudioFile(object):
             blob = data[:size]
             yield blob
 
-    # TODO __del__
+    def close(self):
+        if not self.closed:
+            check(_coreaudio.ExtAudioFileDispose(self._obj))
+            self.closed = True
+
+    def __del__(self):
+        if _coreaudio:
+            self.close()
 
 if __name__ == '__main__':
     url = CFURL(sys.argv[1])
@@ -186,3 +209,5 @@ if __name__ == '__main__':
 
     for blob in af.read_data():
         print len(blob)
+
+    af.close()
