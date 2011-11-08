@@ -107,6 +107,7 @@ def multi_char_literal(chars):
 
 FILE_DATA_FORMAT = multi_char_literal('ffmt')
 CLIENT_DATA_FORMAT = multi_char_literal('cfmt')
+PROP_LENGTH = multi_char_literal('#frm')
 AUDIO_ID_PCM = multi_char_literal('lpcm')
 PCM_IS_FLOAT = 1 << 0
 PCM_IS_BIG_ENDIAN = 1 << 1
@@ -145,7 +146,18 @@ class AudioBufferList(ctypes.Structure):
 
 # Main functionality.
 
-class AudioFile(object):
+class ExtAudioFile(object):
+    """A CoreAudio "extended audio file". Reads information and raw PCM
+    audio data from any file that CoreAudio knows how to decode.
+
+        >>> with ExtAudioFile('something.m4a') as f:
+        >>>     print f.samplerate
+        >>>     print f.channels
+        >>>     print f.duration
+        >>>     for block in f:
+        >>>         do_something(block)
+
+    """
     def __init__(self, filename):
         url = CFURL(filename)
         self._obj = self._open_url(url)
@@ -197,6 +209,31 @@ class AudioFile(object):
         # Cache result.
         self._file_fmt = desc
         return desc
+
+    @property
+    def channels(self):
+        """The number of channels in the audio source."""
+        return int(self.get_file_format().mChannelsPerFrame)
+
+    @property
+    def samplerate(self):
+        """Gets the sample rate of the audio."""
+        return int(self.get_file_format().mSampleRate)
+
+    @property
+    def duration(self):
+        """Gets the length of the file in seconds (a float)."""
+        return float(self.nframes) / self.samplerate
+
+    @property
+    def nframes(self):
+        """Gets the number of frames in the source file."""
+        length = ctypes.c_long()
+        size = ctypes.c_int(ctypes.sizeof(length))
+        check(_coreaudio.ExtAudioFileGetProperty(
+            self._obj, PROP_LENGTH, ctypes.byref(size), ctypes.byref(length)
+        ))
+        return length.value
 
     def setup(self, bitdepth=16):
         """Set the client format parameters, specifying the desired PCM
@@ -253,11 +290,24 @@ class AudioFile(object):
         if _coreaudio:
             self.close()
 
+    # Context manager.
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False
+
+    # Iteration.
+    def __iter__(self):
+        return self.read_data()
+
 
 # Smoke test.
 
 if __name__ == '__main__':
-    af = AudioFile(sys.argv[1])
-    for blob in af.read_data():
-        print len(blob),
-    af.close()
+    with ExtAudioFile(sys.argv[1]) as f:
+        print 'Channels:', f.channels
+        print 'Sample rate:', f.samplerate
+        print 'Duration:', f.duration
+        for blob in f:
+            print len(blob),
