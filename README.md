@@ -28,3 +28,9 @@ Additional values are available as fields on the audio file object:
 * `channels` is the number of audio channels (an integer).
 * `samplerate` is given in Hz (an integer).
 * `duration` is the length of the audio in seconds (a float).
+
+I'd also like to add these backends in the future:
+
+* MAD via pymad.
+* FFmpeg via the command line tools.
+* Mplayer in a similar way?
