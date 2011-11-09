@@ -7,6 +7,7 @@ supports:
 * [Gstreamer][] via [gst-python][].
 * [Core Audio][] on Mac OS X via [ctypes][]. (PyObjC not required.)
 * [MAD][] via the [pymad][] bindings.
+* [FFmpeg][] via its command-line interface.
 
 [Gstreamer]: http://gstreamer.freedesktop.org/
 [gst-python]: http://gstreamer.freedesktop.org/modules/gst-python.html
@@ -14,6 +15,7 @@ supports:
 [ctypes]: http://docs.python.org/library/ctypes.html
 [pymad]: http://spacepants.org/src/pymad/
 [MAD]: http://www.underbit.com/products/mad/
+[FFmpeg]: http://ffmpeg.org/
 
 Use the library like so:
 
@@ -35,11 +37,10 @@ Additional values are available as fields on the audio file object:
 The library currently only selects the backend based on which supporting
 libraries are available. In the future, it should "fall back" to a different
 library when one decoder fails -- for instance, when one library supports a
-certain audio format but another does not. I'd also like to add these backends
-in the future:
+certain audio format but another does not.
 
-* FFmpeg via the command line tools.
 * PyOgg?
+* Other command-line tools?
 
 An alternative to this module is [decoder.py][].
 

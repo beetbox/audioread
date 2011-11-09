@@ -39,3 +39,6 @@ def audio_open(path):
     elif _mad_available():
         from . import maddec
         return maddec.MadAudioFile(path)
+    else:
+        import ffdec
+        return ffdec.FFmpegAudioFile(path)
