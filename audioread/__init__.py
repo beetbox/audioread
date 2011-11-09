@@ -17,6 +17,15 @@ def _ca_available():
     lib = ctypes.util.find_library('AudioToolbox')
     return lib is not None
 
+def _mad_available():
+    """Determines whether the pymad bindings are available."""
+    try:
+        import mad
+    except ImportError:
+        return False
+    else:
+        return True
+
 def audio_open(path):
     """Open an audio file using a library that is available on this
     system.
@@ -27,3 +36,6 @@ def audio_open(path):
     elif _gst_available():
         from . import gstdec
         return gstdec.GstAudioFile(path)
+    elif _mad_available():
+        from . import maddec
+        return maddec.MadAudioFile(path)
