@@ -152,7 +152,7 @@ class GstAudioFile(object):
     
     Iterating the object yields blocks of 16-bit PCM data. Three
     pieces of stream information are also available: samplerate (in Hz),
-    number of channels, and duration (in nanoseconds).
+    number of channels, and duration (in seconds).
     
     It's very important that the client call close() when it's done
     with the object. Otherwise, the program is likely to hang on exit.
@@ -251,7 +251,7 @@ class GstAudioFile(object):
             # Success.
             format, length = q.parse_duration()
             if format == gst.FORMAT_TIME:
-                self.duration = length
+                self.duration = float(length) / 1000000000
             else:
                 # Not sure what happened.
                 self.duration = None
@@ -364,6 +364,6 @@ if __name__ == '__main__':
         with GstAudioFile(path) as f:
             print f.channels
             print f.samplerate
-            print f.duration / 1000000000
+            print f.duration
             for s in f:
                 print len(s), ord(s[0])
