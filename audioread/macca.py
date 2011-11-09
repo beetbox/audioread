@@ -245,7 +245,7 @@ class ExtAudioFile(object):
 
         newfmt.mFormatID = AUDIO_ID_PCM
         newfmt.mFormatFlags = \
-            PCM_IS_BIG_ENDIAN | PCM_IS_SIGNED_INT | PCM_IS_PACKED
+            PCM_IS_SIGNED_INT | PCM_IS_PACKED
         newfmt.mBitsPerChannel = bitdepth
         newfmt.mBytesPerPacket = \
             (fmt.mChannelsPerFrame * newfmt.mBitsPerChannel // 8)
