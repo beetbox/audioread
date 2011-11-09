@@ -55,7 +55,8 @@ compressed audio files to WAV files.
 Et Cetera
 ---------
 
-`audioread` is by Adrian Sampson. An alternative to this module is
-[decoder.py][].
+`audioread` is by Adrian Sampson. It is made available under [the MIT
+license][mit].  An alternative to this module is [decoder.py][].
 
 [decoder.py]: http://www.brailleweb.com/cgi-bin/python.py
+[mit]: http://www.opensource.org/licenses/mit-license.php
