@@ -65,7 +65,10 @@ SENTINEL = '__GSTDEC_SENTINEL__'
 
 # Exceptions.
 
-class UnknownTypeError(Exception):
+class GStreamerError(Exception):
+    pass
+
+class UnknownTypeError(GStreamerError):
     """Raised when Gstreamer can't decode the given file type."""
     def __init__(self, streaminfo):
         super(UnknownTypeError, self).__init__(
@@ -73,11 +76,11 @@ class UnknownTypeError(Exception):
         )
         self.streaminfo = streaminfo
 
-class FileReadError(Exception):
+class FileReadError(GStreamerError):
     """Raised when the file can't be read at all."""
     pass
 
-class NoStreamError(Exception):
+class NoStreamError(GStreamerError):
     """Raised when the file was read successfully but no audio streams
     were found.
     """

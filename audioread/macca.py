@@ -84,9 +84,7 @@ ERROR_NOT_FOUND = -43
 
 class MacError(Exception):
     def __init__(self, code):
-        if code == ERROR_NOT_FOUND:
-            msg = 'file not found'
-        elif code == ERROR_TYPE:
+        if code == ERROR_TYPE:
             msg = 'unsupported audio type'
         elif code == ERROR_FORMAT:
             msg = 'unsupported format'
@@ -96,7 +94,9 @@ class MacError(Exception):
 
 def check(err):
     """If err is nonzero, raise a MacError exception."""
-    if err != 0:
+    if err == ERROR_NOT_FOUND:
+        raise IOError('file not found')
+    elif err != 0:
         raise MacError(err)
 
 

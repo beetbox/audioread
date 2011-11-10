@@ -30,15 +30,27 @@ def audio_open(path):
     """Open an audio file using a library that is available on this
     system.
     """
+    # Core Audio.
     if _ca_available():
         from . import macca
-        return macca.ExtAudioFile(path)
-    elif _gst_available():
+        try:
+            return macca.ExtAudioFile(path)
+        except macca.MacError:
+            pass
+
+    # GStreamer.
+    if _gst_available():
         from . import gstdec
-        return gstdec.GstAudioFile(path)
-    elif _mad_available():
+        try:
+            return gstdec.GstAudioFile(path)
+        except gstdec.GStreamerError:
+            pass
+
+    # MAD.
+    if _mad_available():
         from . import maddec
         return maddec.MadAudioFile(path)
-    else:
-        import ffdec
-        return ffdec.FFmpegAudioFile(path)
+
+    # FFmpeg.
+    import ffdec
+    return ffdec.FFmpegAudioFile(path)
