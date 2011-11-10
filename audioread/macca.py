@@ -55,10 +55,44 @@ _coreaudio.ExtAudioFileDispose.restype = ctypes.c_int
 _coreaudio.ExtAudioFileDispose.argtypes = [ctypes.c_void_p]
 
 
+# Constants used in CoreAudio.
+
+def multi_char_literal(chars):
+    """Emulates character integer literals in C. Given a string "abc",
+    returns the value of the C single-quoted literal 'abc'.
+    """
+    num = 0
+    for index, char in enumerate(chars):
+        shift = (len(chars) - index - 1) * 8
+        num |= ord(char) << shift
+    return num
+
+PROP_FILE_DATA_FORMAT = multi_char_literal('ffmt')
+PROP_CLIENT_DATA_FORMAT = multi_char_literal('cfmt')
+PROP_LENGTH = multi_char_literal('#frm')
+AUDIO_ID_PCM = multi_char_literal('lpcm')
+PCM_IS_FLOAT = 1 << 0
+PCM_IS_BIG_ENDIAN = 1 << 1
+PCM_IS_SIGNED_INT = 1 << 2
+PCM_IS_PACKED = 1 << 3
+ERROR_TYPE = multi_char_literal('typ?')
+ERROR_FORMAT = multi_char_literal('fmt?')
+ERROR_NOT_FOUND = -43
+
+
 # Check for errors in functions that return error codes.
 
 class MacError(Exception):
-    pass
+    def __init__(self, code):
+        if code == ERROR_NOT_FOUND:
+            msg = 'file not found'
+        elif code == ERROR_TYPE:
+            msg = 'unsupported audio type'
+        elif code == ERROR_FORMAT:
+            msg = 'unsupported format'
+        else:
+            msg = 'error %i' % code
+        super(MacError, self).__init__(msg)
 
 def check(err):
     """If err is nonzero, raise a MacError exception."""
@@ -91,28 +125,6 @@ class CFURL(CFObject):
         out = _corefoundation.CFStringGetCStringPtr(cfstr, 0)
         # Resulting CFString does not need to be released according to docs.
         return out
-
-
-# Constants used in CoreAudio.
-
-def multi_char_literal(chars):
-    """Emulates character integer literals in C. Given a string "abc",
-    returns the value of the C single-quoted literal 'abc'.
-    """
-    num = 0
-    for index, char in enumerate(chars):
-        shift = (len(chars) - index - 1) * 8
-        num |= ord(char) << shift
-    return num
-
-FILE_DATA_FORMAT = multi_char_literal('ffmt')
-CLIENT_DATA_FORMAT = multi_char_literal('cfmt')
-PROP_LENGTH = multi_char_literal('#frm')
-AUDIO_ID_PCM = multi_char_literal('lpcm')
-PCM_IS_FLOAT = 1 << 0
-PCM_IS_BIG_ENDIAN = 1 << 1
-PCM_IS_SIGNED_INT = 1 << 2
-PCM_IS_PACKED = 1 << 3
 
 
 # Structs used in CoreAudio.
@@ -160,7 +172,11 @@ class ExtAudioFile(object):
     """
     def __init__(self, filename):
         url = CFURL(filename)
-        self._obj = self._open_url(url)
+        try:
+            self._obj = self._open_url(url)
+        except:
+            self.closed = True
+            raise
         del url
 
         self.closed = False
@@ -186,7 +202,7 @@ class ExtAudioFile(object):
         """
         assert desc.mFormatID == AUDIO_ID_PCM
         check(_coreaudio.ExtAudioFileSetProperty(
-            self._obj, CLIENT_DATA_FORMAT, ctypes.sizeof(desc),
+            self._obj, PROP_CLIENT_DATA_FORMAT, ctypes.sizeof(desc),
             ctypes.byref(desc)
         ))
         self._client_fmt = desc
@@ -203,7 +219,8 @@ class ExtAudioFile(object):
         desc = AudioStreamBasicDescription()
         size = ctypes.c_int(ctypes.sizeof(desc))
         check(_coreaudio.ExtAudioFileGetProperty(
-            self._obj, FILE_DATA_FORMAT, ctypes.byref(size), ctypes.byref(desc)
+            self._obj, PROP_FILE_DATA_FORMAT, ctypes.byref(size),
+            ctypes.byref(desc)
         ))
 
         # Cache result.
