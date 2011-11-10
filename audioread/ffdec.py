@@ -18,9 +18,14 @@ pipe.
 import subprocess
 import re
 
-class FFmpegCommunicationError(Exception):
-    """Raised when the output of FFmpeg is not parseable."""
+class FFmpegError(Exception):
     pass
+
+class CommunicationError(FFmpegError):
+    """Raised when the output of FFmpeg is not parseable."""
+
+class UnsupportedError(FFmpegError):
+    """The file could not be decoded by FFmpeg."""
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
@@ -50,6 +55,8 @@ class FFmpegAudioFile(object):
 
             if 'no such file' in line:
                 raise IOError('file not found')
+            elif 'invalid data found' in line:
+                raise UnsupportedError()
             elif 'duration:' in line:
                 out_parts.append(line)
             elif 'audio:' in line:
@@ -59,7 +66,7 @@ class FFmpegAudioFile(object):
 
         else:
             # Data not found.
-            raise FFmpegCommunicationError("stream info not found")
+            raise CommunicationError("stream info not found")
 
     def _parse_info(self, s):
         """Given relevant data from the ffmpeg output, set audio

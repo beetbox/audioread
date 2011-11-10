@@ -36,13 +36,17 @@ Additional values are available as fields on the audio file object:
 - ``samplerate`` is given in Hz (an integer).
 - ``duration`` is the length of the audio in seconds (a float).
 
+The ``audio_open`` function automatically selects a backend that can read the
+file. (Each backend is implemented in a module inside the ``audioread``
+package.) If no backends succeed in opening the file, a ``DecodeError``
+exception is raised. This exception is only used when the file type is
+unsupported by the backends; if the file doesn't exist, a standard ``IOError``
+will be raised.
+
 Future Work
 -----------
 
-The library currently only selects the backend based on which supporting
-libraries are available. In the future, it should “fall back” to a
-different library when one decoder fails — for instance, when one
-library supports a certain audio format but another does not.
+Possible additional backends:
 
 -  PyOgg?
 -  Other command-line tools?

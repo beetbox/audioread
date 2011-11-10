@@ -14,6 +14,11 @@
 
 """Decode audio files."""
 
+class DecodeError(Exception):
+    """The file could not be decoded by any backend. Either no backends
+    are available or each available backedn failed to decode the file.
+    """
+
 def _gst_available():
     """Determines whether pygstreamer is installed."""
     try:
@@ -70,4 +75,10 @@ def audio_open(path):
 
     # FFmpeg.
     import ffdec
-    return ffdec.FFmpegAudioFile(path)
+    try:
+        return ffdec.FFmpegAudioFile(path)
+    except ffdec.FFmpegError:
+        pass
+
+    # All backends failed!
+    raise DecodeError()
