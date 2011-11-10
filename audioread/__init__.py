@@ -63,7 +63,10 @@ def audio_open(path):
     # MAD.
     if _mad_available():
         from . import maddec
-        return maddec.MadAudioFile(path)
+        try:
+            return maddec.MadAudioFile(path)
+        except maddec.UnsupportedError:
+            pass
 
     # FFmpeg.
     import ffdec

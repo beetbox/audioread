@@ -24,6 +24,7 @@ def decode(filename):
     with audioread.audio_open(filename) as f:
         print 'Input file: %i channels at %i Hz; %.1f seconds.' % \
               (f.channels, f.samplerate, f.duration)
+        print 'Backend:', str(type(f).__module__).split('.')[1]
 
         with contextlib.closing(wave.open(filename + '.wav', 'w')) as of:
             of.setnchannels(f.channels)

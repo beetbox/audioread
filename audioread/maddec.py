@@ -15,10 +15,15 @@
 """Decode MPEG audio files with MAD (via pymad)."""
 import mad
 
+class UnsupportedError(Exception):
+    """The file is not readable by MAD."""
+
 class MadAudioFile(object):
     """MPEG audio file decoder using the MAD library."""
     def __init__(self, filename):
         self.mf = mad.MadFile(filename)
+        if not self.mf.total_time(): # Indicates a failed open.
+            raise UnsupportedError()
 
     def close(self):
         if hasattr(self, 'mf'):
