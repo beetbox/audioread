@@ -51,6 +51,9 @@ class FFmpegAudioFile(object):
         out_parts = []
         while True:
             line = self.proc.stderr.readline()
+            if not line:
+                # EOF and data not found.
+                raise CommunicationError("stream info not found")
             line = line.strip().lower()
 
             if 'no such file' in line:
@@ -63,10 +66,6 @@ class FFmpegAudioFile(object):
                 out_parts.append(line)
                 self._parse_info(''.join(out_parts))
                 break
-
-        else:
-            # Data not found.
-            raise CommunicationError("stream info not found")
 
     def _parse_info(self, s):
         """Given relevant data from the ffmpeg output, set audio
