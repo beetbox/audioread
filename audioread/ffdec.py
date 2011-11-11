@@ -27,13 +27,19 @@ class CommunicationError(FFmpegError):
 class UnsupportedError(FFmpegError):
     """The file could not be decoded by FFmpeg."""
 
+class NotInstalledError(FFmpegError):
+    """Could not find the ffmpeg binary."""
+
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename):
-        self.proc = subprocess.Popen(
-            ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        try:
+            self.proc = subprocess.Popen(
+                ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+        except OSError:
+            raise NotInstalledError()
         self._get_info()
 
     def read_data(self, block_size=4096):
@@ -91,7 +97,7 @@ class FFmpegAudioFile(object):
 
     def close(self):
         """Close the ffmpeg process used to perform the decoding."""
-        if self.proc.returncode is None:
+        if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.terminate()
             self.proc.communicate()
 
