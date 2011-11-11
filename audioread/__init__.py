@@ -49,6 +49,13 @@ def audio_open(path):
     """Open an audio file using a library that is available on this
     system.
     """
+    # Standard-library WAV and AIFF readers.
+    from . import rawread
+    try:
+        return rawread.RawAudioFile(path)
+    except rawread.UnsupportedError:
+        pass
+
     # Core Audio.
     if _ca_available():
         from . import macca

@@ -8,6 +8,7 @@ currently supports:
 - `Core Audio`_ on Mac OS X via `ctypes`_. (PyObjC not required.)
 - `MAD`_ via the `pymad`_ bindings.
 - `FFmpeg`_ via its command-line interface.
+- The standard library `wave`_ and `aifc`_ modules (for WAV and AIFF files).
 
 .. _Gstreamer: http://gstreamer.freedesktop.org/
 .. _gst-python: http://gstreamer.freedesktop.org/modules/gst-python.html
@@ -16,6 +17,8 @@ currently supports:
 .. _MAD: http://www.underbit.com/products/mad/
 .. _pymad: http://spacepants.org/src/pymad/
 .. _FFmpeg: http://ffmpeg.org/
+.. _wave: http://docs.python.org/library/wave.html
+.. _aifc: http://docs.python.org/library/aifc.html
 
 Use the library like so::
 
@@ -36,7 +39,7 @@ Additional values are available as fields on the audio file object:
 - ``samplerate`` is given in Hz (an integer).
 - ``duration`` is the length of the audio in seconds (a float).
 
-The ``audio_open`` function automatically selects a backend that can read the
+The ``audio_open`` function transparently selects a backend that can read the
 file. (Each backend is implemented in a module inside the ``audioread``
 package.) If no backends succeed in opening the file, a ``DecodeError``
 exception is raised. This exception is only used when the file type is
