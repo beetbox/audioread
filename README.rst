@@ -1,7 +1,7 @@
 audioread
 =========
 
-Decode audio files using whichever library is available. The library
+Decode audio files using whichever backend is available. The library
 currently supports:
 
 - `Gstreamer`_ via `gst-python`_.
@@ -27,11 +27,11 @@ Use the library like so::
         for buf in f:
             do_something(buf)
 
-Buffers in the file can be accessed by iterating over the object
-returned from ``audio_open``. Each buffer is a ``buffer`` or ``str``
-object containing raw 16-bit little-endian integer PCM data. (Currently,
-these PCM format attributes are not configurable, but this could be
-added to most of the backends.)
+Buffers in the file can be accessed by iterating over the object returned from
+``audio_open``. Each buffer is a ``buffer`` or ``str`` object containing raw
+**16-bit little-endian signed integer PCM data**. (Currently, these PCM format
+parameters are not configurable, but this could be added to most of the
+backends.)
 
 Additional values are available as fields on the audio file object:
 
