@@ -228,7 +228,7 @@ class GstAudioFile(object):
         self.ready_sem.acquire()
         if self.read_exc:
             # An error occurred before the stream became ready.
-            self.close()
+            self.close(True)
             raise self.read_exc
         self.running = True
     
@@ -324,8 +324,8 @@ class GstAudioFile(object):
         return self
     
     # Cleanup.
-    def close(self):
-        if self.running:
+    def close(self, force=False):
+        if self.running or force:
             self.running = False
 
             # Stop reading the file.
