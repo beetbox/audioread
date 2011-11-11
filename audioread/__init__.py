@@ -81,7 +81,7 @@ def audio_open(path):
             pass
 
     # FFmpeg.
-    import ffdec
+    from . import ffdec
     try:
         return ffdec.FFmpegAudioFile(path)
     except ffdec.FFmpegError:
