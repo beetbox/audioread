@@ -91,50 +91,27 @@ _shared_loop_thread = None
 _loop_thread_lock = threading.RLock()
 gobject.threads_init()
 def get_loop_thread():
-    """Get the shared main-loop thread. It is automatically acquired;
-    you must call release() on it later.
+    """Get the shared main-loop thread.
     """
     global _shared_loop_thread
     with _loop_thread_lock:
-        if _shared_loop_thread and not _shared_loop_thread.running:
-            # The thread has been released & stopped and needs to be
-            # thrown away.
-            _shared_loop_thread = None
         if not _shared_loop_thread:
             # Start a new thread.
             _shared_loop_thread = MainLoopThread()
             _shared_loop_thread.start()
-        _shared_loop_thread.acquire()
         return _shared_loop_thread
 class MainLoopThread(threading.Thread):
-    """A thread encapsulating a Gobject main loop. It uses a primitive
-    little reference-counter scheme to make sure the loop stops when
-    everybody's done with it. Call acquire() and release() to start and
-    stop using the loop.
+    """A daemon thread encapsulating a Gobject main loop.
     """
     def __init__(self):   
         super(MainLoopThread, self).__init__()             
         self.loop = gobject.MainLoop()
         self.running = False
-        self.references = 0
+        self.daemon = True
         
     def run(self):    
         self.running = True
         self.loop.run()
-    
-    def acquire(self):
-        with _loop_thread_lock:
-            self.references += 1
-    
-    def release(self):
-        with _loop_thread_lock:
-            self.references -= 1
-            if self.references <= 0 and self.running:
-                # Stop the loop entirely. This thread is now dead and
-                # should be thrown away.
-                self.loop.quit()
-                self.join()
-                self.running = False
 
 
 # The decoder.
@@ -343,9 +320,6 @@ class GstAudioFile(object):
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(gst.STATE_NULL)
-
-            # Clean up the thread.
-            self.thread.release()
 
     def __del__(self):
         self.close()
