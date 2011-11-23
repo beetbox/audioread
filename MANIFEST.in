@@ -1,0 +1,4 @@
+# Documentation.
+include README.rst
+# Example script.
+include decode.py
