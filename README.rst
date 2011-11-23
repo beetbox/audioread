@@ -60,6 +60,16 @@ Example
 The included ``decode.py`` script demonstrates using this package to
 convert compressed audio files to WAV files.
 
+Version History
+---------------
+
+0.2
+  Fix a hang in the GStreamer backend that occurs occasionally on some
+  platforms.
+
+0.1
+  Initial release.
+
 Et Cetera
 ---------
 
