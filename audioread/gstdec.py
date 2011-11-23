@@ -138,6 +138,7 @@ class GstAudioFile(object):
     """
     def __init__(self, path):
         self.running = False
+        self.finished = False
         
         # Set up the Gstreamer pipeline.
         self.pipeline = gst.Pipeline()
@@ -276,18 +277,19 @@ class GstAudioFile(object):
         self.ready_sem.release()
     
     def _message(self, bus, message):
-        if message.type == gst.MESSAGE_EOS:
-            # The file is done. Tell the consumer thread.
-            self.queue.put(SENTINEL)
-        elif message.type == gst.MESSAGE_ERROR:
-            gerror, debug = message.parse_error()
-            if 'not-linked' in debug:
-                self.read_exc = NoStreamError()
-            elif 'No such file' in debug:
-                self.read_exc = IOError('resource not found')
-            else:
-                self.read_exc = FileReadError(debug)
-            self.ready_sem.release()
+        if not self.finished:
+            if message.type == gst.MESSAGE_EOS:
+                # The file is done. Tell the consumer thread.
+                self.queue.put(SENTINEL)
+            elif message.type == gst.MESSAGE_ERROR:
+                gerror, debug = message.parse_error()
+                if 'not-linked' in debug:
+                    self.read_exc = NoStreamError()
+                elif 'No such file' in debug:
+                    self.read_exc = IOError('resource not found')
+                else:
+                    self.read_exc = FileReadError(debug)
+                self.ready_sem.release()
     
     # Iteration.
     def next(self):
@@ -304,6 +306,7 @@ class GstAudioFile(object):
     def close(self, force=False):
         if self.running or force:
             self.running = False
+            self.finished = True
 
             # Stop reading the file.
             self.dec.set_property("uri", None)
@@ -317,6 +320,16 @@ class GstAudioFile(object):
                 self.queue.get_nowait()
             except Queue.Empty:
                 pass
+
+            # Remove all elements in the pipeline. This seems a little
+            # bit odd, but it resolves a problem on some platforms,
+            # when one file was opened immediately after the previous
+            # one was closed, the decoding would hang while trying to
+            # change the state to PLAYING. This seems to clear it up and
+            # is also a little less cargo-culty than inserting a sleep
+            # (which also seems to work, bizarrely).
+            for element in list(self.pipeline.elements()):
+                self.pipeline.remove(element)
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(gst.STATE_NULL)
