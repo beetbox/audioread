@@ -20,7 +20,7 @@ def _read(fn):
     return open(path).read()
 
 setup(name='audioread',
-      version='0.2',
+      version='0.3',
       description='multi-library, cross-platform audio decoding',
       author='Adrian Sampson',
       author_email='adrian@radbox.org',

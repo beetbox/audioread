@@ -63,6 +63,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+0.3
+  Fix a problem with the Gstreamer backend where audio files could be left open
+  even after the ``GstAudioFile`` was "closed".
+
 0.2
   Fix a hang in the GStreamer backend that occurs occasionally on some
   platforms.
