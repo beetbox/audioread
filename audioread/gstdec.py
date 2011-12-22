@@ -202,7 +202,7 @@ class GstAudioFile(object):
         self.read_exc = None
         
         # Return as soon as the stream is ready!
-        self.pipeline.set_state(gst.STATE_PAUSED)
+        self.pipeline.set_state(gst.STATE_PLAYING)
         self.ready_sem.acquire()
         if self.read_exc:
             # An error occurred before the stream became ready.
@@ -249,7 +249,6 @@ class GstAudioFile(object):
             if not nextpad.is_linked():
                 self._got_a_pad = True
                 pad.link(nextpad)
-            self.pipeline.set_state(gst.STATE_PLAYING)
     
     def _no_more_pads(self, element):
         # Sent when the pads are done adding (i.e., there are no more
@@ -320,16 +319,6 @@ class GstAudioFile(object):
                 self.queue.get_nowait()
             except Queue.Empty:
                 pass
-
-            # Remove all elements in the pipeline. This seems a little
-            # bit odd, but it resolves a problem on some platforms,
-            # when one file was opened immediately after the previous
-            # one was closed, the decoding would hang while trying to
-            # change the state to PLAYING. This seems to clear it up and
-            # is also a little less cargo-culty than inserting a sleep
-            # (which also seems to work, bizarrely).
-            for element in list(self.pipeline.elements()):
-                self.pipeline.remove(element)
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(gst.STATE_NULL)
