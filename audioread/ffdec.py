@@ -83,7 +83,11 @@ class FFmpegAudioFile(object):
         if mode == 'stereo':
             self.channels = 2
         else:
-            self.channels = 1
+            match = re.match(r'(\d+) ', mode)
+            if match:
+                self.channels = int(match.group(1))
+            else:
+                self.channels = 1
 
         durparts = re.search(
             r'duration: (\d+):(\d+):(\d+).(\d)', s

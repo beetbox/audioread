@@ -63,6 +63,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+0.4
+  Fix channel count detection for FFmpeg backend.
+
 0.3
   Fix a problem with the Gstreamer backend where audio files could be left open
   even after the ``GstAudioFile`` was "closed".
