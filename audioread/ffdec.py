@@ -77,18 +77,29 @@ class FFmpegAudioFile(object):
         """Given relevant data from the ffmpeg output, set audio
         parameter fields on this object.
         """
-        self.samplerate = int(re.search(r'(\d+) hz', s).group(1))
-
-        mode = re.search(r'hz, ([^,]+),', s).group(1)
-        if mode == 'stereo':
-            self.channels = 2
+        # Sample rate.
+        match = re.search(r'(\d+) hz', s)
+        if match:
+            self.samplerate = int(match.group(1))
         else:
-            match = re.match(r'(\d+) ', mode)
-            if match:
-                self.channels = int(match.group(1))
-            else:
-                self.channels = 1
+            self.samplerate = 0
 
+        # Channel count.
+        match = re.search(r'hz, ([^,]+),', s)
+        if match:
+            mode = match.group(1)
+            if mode == 'stereo':
+                self.channels = 2
+            else:
+                match = re.match(r'(\d+) ', mode)
+                if match:
+                    self.channels = int(match.group(1))
+                else:
+                    self.channels = 1
+        else:
+            self.channels = 0
+
+        # Duration.
         match = re.search(
             r'duration: (\d+):(\d+):(\d+).(\d)', s
         )
@@ -122,3 +133,4 @@ class FFmpegAudioFile(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
         return False
+
