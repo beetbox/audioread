@@ -63,6 +63,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+0.5
+  Fix crash when FFmpeg fails to report a duration.
+
 0.4
   Fix channel count detection for FFmpeg backend.
 

@@ -1,5 +1,5 @@
 # This file is part of audioread.
-# Copyright 2011, Adrian Sampson.
+# Copyright 2012, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -89,15 +89,19 @@ class FFmpegAudioFile(object):
             else:
                 self.channels = 1
 
-        durparts = re.search(
+        match = re.search(
             r'duration: (\d+):(\d+):(\d+).(\d)', s
-        ).groups()
-        durparts = map(int, durparts)
-        duration = durparts[0] * 60 * 60 + \
-                   durparts[1] * 60 + \
-                   durparts[2] + \
-                   float(durparts[3]) / 10
-        self.duration = duration
+        )
+        if match:
+            durparts = map(int, match.groups())
+            duration = durparts[0] * 60 * 60 + \
+                       durparts[1] * 60 + \
+                       durparts[2] + \
+                       float(durparts[3]) / 10
+            self.duration = duration
+        else:
+            # No duration found.
+            self.duration = 0
 
     def close(self):
         """Close the ffmpeg process used to perform the decoding."""
