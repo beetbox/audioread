@@ -17,6 +17,7 @@ pipe.
 """
 import subprocess
 import re
+import threading
 
 class FFmpegError(Exception):
     pass
@@ -29,6 +30,28 @@ class UnsupportedError(FFmpegError):
 
 class NotInstalledError(FFmpegError):
     """Could not find the ffmpeg binary."""
+
+class ReaderThread(threading.Thread):
+    """A thread that consumes data from a filehandle. This is used to ensure
+    that a buffer for an input stream never fills up.
+    """
+    # It may seem a little hacky, but this is the most straightforward &
+    # reliable way I can think of to do this. select() is sort of
+    # inefficient because it doesn't indicate how much is available to
+    # read -- so I end up reading character by character.
+    def __init__(self, fh, blocksize=1024):
+        super(ReaderThread, self).__init__()
+        self.fh = fh
+        self.blocksize = blocksize
+        self.daemon = True
+        self.data = []
+
+    def run(self):
+        while True:
+            data = self.fh.read(self.blocksize)
+            if not data:
+                break
+            self.data.append(data)
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
@@ -44,6 +67,10 @@ class FFmpegAudioFile(object):
 
     def read_data(self, block_size=4096):
         """Read blocks of raw PCM data from the file."""
+        # Start a separate thread to read from stderr.
+        stderr_reader = ReaderThread(self.proc.stderr)
+        stderr_reader.start()
+
         while True:
             data = self.proc.stdout.read(block_size)
             if not data:

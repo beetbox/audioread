@@ -65,6 +65,7 @@ Version History
 
 0.5
   Fix crash when FFmpeg fails to report a duration.
+  Fix a hang when FFmpeg fills up its stderr output buffer.
 
 0.4
   Fix channel count detection for FFmpeg backend.
