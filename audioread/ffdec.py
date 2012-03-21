@@ -67,14 +67,17 @@ class FFmpegAudioFile(object):
             )
         except OSError:
             raise NotInstalledError()
+
+        # Read relevant information from stderr.
         self._get_info()
 
-    def read_data(self, block_size=4096, timeout=10.0):
-        """Read blocks of raw PCM data from the file."""
-        # Start a separate thread to read from stderr.
+        # Start a separate thread to read the rest of the data from
+        # stderr.
         stderr_reader = ReaderThread(self.proc.stderr)
         stderr_reader.start()
 
+    def read_data(self, block_size=4096, timeout=10.0):
+        """Read blocks of raw PCM data from the file."""
         # Read from stdout on this thread.
         while True:
             # Wait for data to be available or a timeout.
@@ -157,7 +160,10 @@ class FFmpegAudioFile(object):
         """Close the ffmpeg process used to perform the decoding."""
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.terminate()
-            self.proc.communicate()
+            # Flush the stdout buffer (stderr already flushed).
+            stdout_reader = ReaderThread(self.proc.stdout)
+            stdout_reader.start()
+            self.proc.wait()
 
     def __del__(self):
         self.close()
