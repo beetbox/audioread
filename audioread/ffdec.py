@@ -18,6 +18,7 @@ pipe.
 import subprocess
 import re
 import threading
+import select
 
 class FFmpegError(Exception):
     pass
@@ -30,6 +31,9 @@ class UnsupportedError(FFmpegError):
 
 class NotInstalledError(FFmpegError):
     """Could not find the ffmpeg binary."""
+
+class ReadTimeoutError(FFmpegError):
+    """Reading from the ffmpeg command-line tool timed out."""
 
 class ReaderThread(threading.Thread):
     """A thread that consumes data from a filehandle. This is used to ensure
@@ -65,13 +69,21 @@ class FFmpegAudioFile(object):
             raise NotInstalledError()
         self._get_info()
 
-    def read_data(self, block_size=4096):
+    def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Start a separate thread to read from stderr.
         stderr_reader = ReaderThread(self.proc.stderr)
         stderr_reader.start()
 
+        # Read from stdout on this thread.
         while True:
+            # Wait for data to be available or a timeout.
+            rready, _, xready = select.select((self.proc.stdout,),
+                                              (), (self.proc.stdout,),
+                                              timeout)
+            if not rready and not xready:
+                raise ReadTimeoutError()
+
             data = self.proc.stdout.read(block_size)
             if not data:
                 break

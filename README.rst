@@ -66,6 +66,9 @@ Version History
 0.5
   Fix crash when FFmpeg fails to report a duration.
   Fix a hang when FFmpeg fills up its stderr output buffer.
+  Add a timeout to ``ffmpeg`` tool execution (currently 10 seconds for each
+  4096-byte read); a ``ReadTimeoutError`` exception is raised if the tool times
+  out.
 
 0.4
   Fix channel count detection for FFmpeg backend.
