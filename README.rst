@@ -63,6 +63,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+0.6
+  Make FFmpeg timeout more robust.
+
 0.5
   Fix crash when FFmpeg fails to report a duration.
   Fix a hang when FFmpeg fills up its stderr output buffer.

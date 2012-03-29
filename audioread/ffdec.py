@@ -19,6 +19,7 @@ import subprocess
 import re
 import threading
 import select
+import time
 
 class FFmpegError(Exception):
     pass
@@ -79,13 +80,21 @@ class FFmpegAudioFile(object):
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout on this thread.
+        start_time = time.time()
         while True:
             # Wait for data to be available or a timeout.
             rready, _, xready = select.select((self.proc.stdout,),
                                               (), (self.proc.stdout,),
                                               timeout)
+            end_time = time.time()
             if not rready and not xready:
-                raise ReadTimeoutError()
+                if end_time - start_time >= timeout:
+                    # Nothing interesting has happened.
+                    raise ReadTimeoutError()
+                else:
+                    # Keep waiting.
+                    continue
+            start_time = end_time
 
             data = self.proc.stdout.read(block_size)
             if not data:
