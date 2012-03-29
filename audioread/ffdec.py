@@ -74,8 +74,8 @@ class FFmpegAudioFile(object):
 
         # Start a separate thread to read the rest of the data from
         # stderr.
-        stderr_reader = ReaderThread(self.proc.stderr)
-        stderr_reader.start()
+        self.stderr_reader = ReaderThread(self.proc.stderr)
+        self.stderr_reader.start()
 
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
@@ -89,8 +89,12 @@ class FFmpegAudioFile(object):
             end_time = time.time()
             if not rready and not xready:
                 if end_time - start_time >= timeout:
-                    # Nothing interesting has happened.
-                    raise ReadTimeoutError()
+                    # Nothing interesting has happened for a while --
+                    # FFmpeg is probably hanging.
+                    raise ReadTimeoutError(
+                        'ffmpeg output: %s' %
+                        ''.join(self.stderr_reader.data)
+                    )
                 else:
                     # Keep waiting.
                     continue
