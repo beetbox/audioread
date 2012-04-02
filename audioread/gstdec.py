@@ -106,11 +106,9 @@ class MainLoopThread(threading.Thread):
     def __init__(self):   
         super(MainLoopThread, self).__init__()             
         self.loop = gobject.MainLoop()
-        self.running = False
         self.daemon = True
         
     def run(self):    
-        self.running = True
         self.loop.run()
 
 
@@ -202,13 +200,13 @@ class GstAudioFile(object):
         self.read_exc = None
         
         # Return as soon as the stream is ready!
+        self.running = True
         self.pipeline.set_state(gst.STATE_PLAYING)
         self.ready_sem.acquire()
         if self.read_exc:
             # An error occurred before the stream became ready.
             self.close(True)
             raise self.read_exc
-        self.running = True
     
     
     # Gstreamer callbacks.
@@ -254,9 +252,9 @@ class GstAudioFile(object):
         # Sent when the pads are done adding (i.e., there are no more
         # streams in the file). If we haven't gotten at least one
         # decodable stream, raise an exception.
-        if not self.running and not self._got_a_pad:
+        if not self._got_a_pad:
             self.read_exc = NoStreamError()
-            self.ready_sem.release()
+            self.ready_sem.release()  # No effect if we've already started.
     
     def _new_buffer(self, sink):
         if self.running:

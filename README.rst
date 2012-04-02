@@ -64,7 +64,9 @@ Version History
 ---------------
 
 0.6
-  Make FFmpeg timeout more robust. Dump FFmpeg output on timeout.
+  Make FFmpeg timeout more robust.
+  Dump FFmpeg output on timeout.
+  Fix a nondeterministic hang in the Gstreamer backend.
 
 0.5
   Fix crash when FFmpeg fails to report a duration.
