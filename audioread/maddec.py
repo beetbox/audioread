@@ -21,11 +21,14 @@ class UnsupportedError(Exception):
 class MadAudioFile(object):
     """MPEG audio file decoder using the MAD library."""
     def __init__(self, filename):
-        self.mf = mad.MadFile(filename)
+        self.fp = open(filename, 'rb')
+        self.mf = mad.MadFile(self.fp)
         if not self.mf.total_time(): # Indicates a failed open.
             raise UnsupportedError()
 
     def close(self):
+        if hasattr(self, 'fp'):
+            self.fp.close()
         if hasattr(self, 'mf'):
             del self.mf
 

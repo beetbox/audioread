@@ -67,6 +67,7 @@ Version History
   Make FFmpeg timeout more robust.
   Dump FFmpeg output on timeout.
   Fix a nondeterministic hang in the Gstreamer backend.
+  Fix a file descriptor leak in the MAD backend.
 
 0.5
   Fix crash when FFmpeg fails to report a duration.
