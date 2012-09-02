@@ -63,6 +63,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+0.7
+  Fix opening WAV and AIFF files via Unicode filenames.
+
 0.6
   Make FFmpeg timeout more robust.
   Dump FFmpeg output on timeout.

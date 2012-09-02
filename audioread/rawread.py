@@ -41,15 +41,17 @@ class RawAudioFile(object):
     library modules ``wave`` and ``aifc``.
     """
     def __init__(self, filename):
+        self._fh = open(filename)
+
         try:
-            self._file = aifc.open(filename)
+            self._file = aifc.open(self._fh)
             self._is_aif = True
             return
         except aifc.Error:
             pass
 
         try:
-            self._file = wave.open(filename)
+            self._file = wave.open(self._fh)
             self._is_aif = False
             return
         except wave.Error:
@@ -60,6 +62,7 @@ class RawAudioFile(object):
     def close(self):
         """Close the underlying file."""
         self._file.close()
+        self._fh.close()
 
     @property
     def channels(self):
