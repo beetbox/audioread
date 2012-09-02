@@ -41,7 +41,7 @@ class RawAudioFile(object):
     library modules ``wave`` and ``aifc``.
     """
     def __init__(self, filename):
-        self._fh = open(filename)
+        self._fh = open(filename, 'rb')
 
         try:
             self._file = aifc.open(self._fh)
