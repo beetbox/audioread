@@ -17,10 +17,11 @@ import wave
 import aifc
 import audioop
 import struct
+from . import DecodeError
 
 TARGET_WIDTH = 2
 
-class UnsupportedError(Exception):
+class UnsupportedError(DecodeError):
     """File is neither an AIFF nor a WAV file."""
 
 def byteswap(s):

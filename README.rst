@@ -63,6 +63,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+0.8
+  All decoding errors are now subclasses of ``DecodeError``.
+
 0.7
   Fix opening WAV and AIFF files via Unicode filenames.
 

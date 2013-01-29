@@ -54,6 +54,7 @@ import threading
 import os
 import urllib
 import Queue
+from . import DecodeError
 
 QUEUE_SIZE = 10
 BUFFER_SIZE = 10
@@ -62,7 +63,7 @@ SENTINEL = '__GSTDEC_SENTINEL__'
 
 # Exceptions.
 
-class GStreamerError(Exception):
+class GStreamerError(DecodeError):
     pass
 
 class UnknownTypeError(GStreamerError):

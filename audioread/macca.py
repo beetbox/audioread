@@ -18,6 +18,7 @@ import sys
 import ctypes
 import ctypes.util
 import copy
+from . import DecodeError
 
 
 # CoreFoundation and CoreAudio libraries along with their function
@@ -96,7 +97,7 @@ ERROR_NOT_FOUND = -43
 
 # Check for errors in functions that return error codes.
 
-class MacError(Exception):
+class MacError(DecodeError):
     def __init__(self, code):
         if code == ERROR_TYPE:
             msg = 'unsupported audio type'

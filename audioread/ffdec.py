@@ -20,8 +20,9 @@ import re
 import threading
 import select
 import time
+from . import DecodeError
 
-class FFmpegError(Exception):
+class FFmpegError(DecodeError):
     pass
 
 class CommunicationError(FFmpegError):

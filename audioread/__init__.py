@@ -1,5 +1,5 @@
 # This file is part of audioread.
-# Copyright 2011, Adrian Sampson.
+# Copyright 2013, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -15,8 +15,13 @@
 """Decode audio files."""
 
 class DecodeError(Exception):
+    """The base exception class for all decoding errors raised by this
+    package.
+    """
+
+class NoBackendError(DecodeError):
     """The file could not be decoded by any backend. Either no backends
-    are available or each available backedn failed to decode the file.
+    are available or each available backend failed to decode the file.
     """
 
 def _gst_available():
@@ -53,7 +58,7 @@ def audio_open(path):
     from . import rawread
     try:
         return rawread.RawAudioFile(path)
-    except rawread.UnsupportedError:
+    except DecodeError:
         pass
 
     # Core Audio.
@@ -61,7 +66,7 @@ def audio_open(path):
         from . import macca
         try:
             return macca.ExtAudioFile(path)
-        except macca.MacError:
+        except DecodeError:
             pass
 
     # GStreamer.
@@ -69,7 +74,7 @@ def audio_open(path):
         from . import gstdec
         try:
             return gstdec.GstAudioFile(path)
-        except gstdec.GStreamerError:
+        except DecodeError:
             pass
 
     # MAD.
@@ -77,15 +82,15 @@ def audio_open(path):
         from . import maddec
         try:
             return maddec.MadAudioFile(path)
-        except maddec.UnsupportedError:
+        except DecodeError:
             pass
 
     # FFmpeg.
     from . import ffdec
     try:
         return ffdec.FFmpegAudioFile(path)
-    except ffdec.FFmpegError:
+    except DecodeError:
         pass
 
     # All backends failed!
-    raise DecodeError()
+    raise NoBackendError()

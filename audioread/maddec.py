@@ -14,8 +14,9 @@
 
 """Decode MPEG audio files with MAD (via pymad)."""
 import mad
+from . import DecodeError
 
-class UnsupportedError(Exception):
+class UnsupportedError(DecodeError):
     """The file is not readable by MAD."""
 
 class MadAudioFile(object):
