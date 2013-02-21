@@ -66,6 +66,7 @@ Version History
 1.0.0
   Catch GStreamer's exception when necessary components, such as
   ``uridecodebin``, are missing.
+  The GStreamer backend now accepts relative paths.
 
 0.8
   All decoding errors are now subclasses of ``DecodeError``.

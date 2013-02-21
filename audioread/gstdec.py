@@ -166,7 +166,7 @@ class GstAudioFile(object):
         bus.connect("message::error", self._message)
         
         # Configure the input.
-        uri = 'file://' + urllib.quote(path)
+        uri = 'file://' + urllib.quote(os.path.abspath(path))
         self.dec.set_property("uri", uri)
         # The callback to connect the input.
         self.dec.connect("pad-added", self._pad_added)
