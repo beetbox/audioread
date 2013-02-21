@@ -63,6 +63,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.0.0
+  Catch GStreamer's exception when necessary components, such as
+  ``uridecodebin``, are missing.
+
 0.8
   All decoding errors are now subclasses of ``DecodeError``.
 

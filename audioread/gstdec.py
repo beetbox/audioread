@@ -85,6 +85,15 @@ class NoStreamError(GStreamerError):
     def __init__(self):
         super(NoStreamError, self).__init__('no audio streams found')
 
+class IncompleteGStreamerError(GStreamerError):
+    """Raised when necessary components of GStreamer (namely, the
+    principal plugin packages) are missing.
+    """
+    def __init__(self):
+        super(IncompleteGStreamerError, self).__init__(
+            'missing GStreamer base plugins'
+        )
+
 
 # Managing the Gobject main loop thread.
 
@@ -141,9 +150,14 @@ class GstAudioFile(object):
         
         # Set up the Gstreamer pipeline.
         self.pipeline = gst.Pipeline()
-        self.dec = gst.element_factory_make("uridecodebin")
-        self.conv = gst.element_factory_make("audioconvert")
-        self.sink = gst.element_factory_make('appsink')
+        try:
+            self.dec = gst.element_factory_make("uridecodebin")
+            self.conv = gst.element_factory_make("audioconvert")
+            self.sink = gst.element_factory_make("appsink")
+        except gst.ElementNotFoundError:
+            # uridecodebin, audioconvert, or appsink is missing. We need
+            # gst-plugins-base.
+            raise IncompleteGStreamerError()
         
         # Register for bus signals.
         bus = self.pipeline.get_bus()
