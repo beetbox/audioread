@@ -216,6 +216,7 @@ class GstAudioFile(object):
         
         # Return as soon as the stream is ready!
         self.running = True
+        self.got_caps = False
         self.pipeline.set_state(gst.STATE_PLAYING)
         self.ready_sem.acquire()
         if self.read_exc:
@@ -230,6 +231,7 @@ class GstAudioFile(object):
         # The sink has started to receive data, so the stream is ready.
         # This also is our opportunity to read information about the
         # stream.
+        self.got_caps = True
         info = pad.get_negotiated_caps()[0]
         
         # Stream attributes.
@@ -293,6 +295,12 @@ class GstAudioFile(object):
             if message.type == gst.MESSAGE_EOS:
                 # The file is done. Tell the consumer thread.
                 self.queue.put(SENTINEL)
+                if not self.got_caps:
+                    # If the stream ends before _notify_caps was called, this
+                    # is an invalid file.
+                    self.read_exc = NoStreamError()
+                    self.ready_sem.release()
+
             elif message.type == gst.MESSAGE_ERROR:
                 gerror, debug = message.parse_error()
                 if 'not-linked' in debug:
