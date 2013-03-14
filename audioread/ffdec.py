@@ -117,9 +117,9 @@ class FFmpegAudioFile(object):
                 # EOF and data not found.
                 raise CommunicationError("stream info not found")
             
-            # In Python 3-x result of reading from stderr is bytes
+            # In Python 3, result of reading from stderr is bytes.
             if isinstance(line, bytes):
-                line = line.decode()
+                line = line.decode('utf8', 'ignore')
                 
             line = line.strip().lower()
 
