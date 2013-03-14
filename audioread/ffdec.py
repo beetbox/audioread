@@ -116,6 +116,11 @@ class FFmpegAudioFile(object):
             if not line:
                 # EOF and data not found.
                 raise CommunicationError("stream info not found")
+            
+            # In Python 3-x result of reading from stderr is bytes
+            if isinstance(line, bytes):
+                line = line.decode()
+                
             line = line.strip().lower()
 
             if 'no such file' in line:
@@ -160,7 +165,7 @@ class FFmpegAudioFile(object):
             r'duration: (\d+):(\d+):(\d+).(\d)', s
         )
         if match:
-            durparts = map(int, match.groups())
+            durparts = list(map(int, match.groups()))
             duration = durparts[0] * 60 * 60 + \
                        durparts[1] * 60 + \
                        durparts[2] + \
