@@ -129,6 +129,8 @@ class CFObject(object):
 
 class CFURL(CFObject):
     def __init__(self, filename):
+        if not isinstance(filename, bytes):
+            filename = filename.encode(sys.getfilesystemencoding())
         filename = os.path.abspath(os.path.expanduser(filename))
         url = _corefoundation.CFURLCreateFromFileSystemRepresentation(
             0, filename, len(filename), False
@@ -332,14 +334,3 @@ class ExtAudioFile(object):
     # Iteration.
     def __iter__(self):
         return self.read_data()
-
-
-# Smoke test.
-
-if __name__ == '__main__':
-    with ExtAudioFile(sys.argv[1]) as f:
-        print 'Channels:', f.channels
-        print 'Sample rate:', f.samplerate
-        print 'Duration:', f.duration
-        for blob in f:
-            print len(blob),

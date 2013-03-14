@@ -69,6 +69,7 @@ Version History
   The GStreamer backend now accepts relative paths.
   Fix a hang in GStreamer when the stream finishes before it begins (when
   reading broken files).
+  Initial support for Python 3.
 
 0.8
   All decoding errors are now subclasses of ``DecodeError``.
