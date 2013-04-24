@@ -63,6 +63,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.0.1
+  When GStreamer fails to report a duration, raise an exception instead of
+  silently setting the duration field to None.
+
 1.0.0
   Catch GStreamer's exception when necessary components, such as
   ``uridecodebin``, are missing.

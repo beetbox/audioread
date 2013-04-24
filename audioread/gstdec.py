@@ -85,6 +85,12 @@ class NoStreamError(GStreamerError):
     def __init__(self):
         super(NoStreamError, self).__init__('no audio streams found')
 
+class MetadataMissingError(GStreamerError):
+    """Raised when GStreamer fails to report stream metadata (duration,
+    channels, or sample rate).
+    """
+    pass
+
 class IncompleteGStreamerError(GStreamerError):
     """Raised when necessary components of GStreamer (namely, the
     principal plugin packages) are missing.
@@ -246,11 +252,12 @@ class GstAudioFile(object):
             if format == gst.FORMAT_TIME:
                 self.duration = float(length) / 1000000000
             else:
-                # Not sure what happened.
-                self.duration = None
+                self.read_exc = MetadataMissingError(
+                    'duration in unknown format'
+                )
         else:
-            # Failure.
-            self.duration = None
+            # Query failed.
+            self.read_exc = MetadataMissingError('duration not available')
         
         # Allow constructor to complete.
         self.ready_sem.release()
