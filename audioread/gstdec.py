@@ -366,8 +366,8 @@ if __name__ == '__main__':
     for path in sys.argv[1:]:
         path = os.path.abspath(os.path.expanduser(path))
         with GstAudioFile(path) as f:
-            print f.channels
-            print f.samplerate
-            print f.duration
+            print(f.channels)
+            print(f.samplerate)
+            print(f.duration)
             for s in f:
-                print len(s), ord(s[0])
+                print(len(s), ord(s[0]))
