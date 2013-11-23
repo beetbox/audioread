@@ -63,6 +63,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.0.2
+  Send SIGKILL, not SIGTERM, to ffmpeg processes to avoid occasional hangs.
+
 1.0.1
   When GStreamer fails to report a duration, raise an exception instead of
   silently setting the duration field to None.

@@ -178,7 +178,7 @@ class FFmpegAudioFile(object):
     def close(self):
         """Close the ffmpeg process used to perform the decoding."""
         if hasattr(self, 'proc') and self.proc.returncode is None:
-            self.proc.terminate()
+            self.proc.kill()
             # Flush the stdout buffer (stderr already flushed).
             stdout_reader = ReaderThread(self.proc.stdout)
             stdout_reader.start()
