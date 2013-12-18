@@ -1,6 +1,9 @@
 audioread
 =========
 
+.. image:: https://secure.travis-ci.org/sampsyo/audioread.png
+        :target: https://travis-ci.org/sampsyo/audioread/
+
 Decode audio files using whichever backend is available. The library
 currently supports:
 
