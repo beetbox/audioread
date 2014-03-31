@@ -26,7 +26,7 @@ currently supports:
 Use the library like so::
 
     with audioread.audio_open(filename) as f:
-        print f.channels, f.samplerate, f.duration
+        print(f.channels, f.samplerate, f.duration)
         for buf in f:
             do_something(buf)
 
@@ -48,6 +48,10 @@ package.) If no backends succeed in opening the file, a ``DecodeError``
 exception is raised. This exception is only used when the file type is
 unsupported by the backends; if the file doesn't exist, a standard ``IOError``
 will be raised.
+
+Audioread is "universal" and supports both Python 2 (2.6+) and Python 3
+(3.2+). The GStreamer backend currently only supports 2.x since gst-python is
+2.x-only.
 
 Future Work
 -----------
