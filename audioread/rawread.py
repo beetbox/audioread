@@ -46,17 +46,20 @@ class RawAudioFile(object):
 
         try:
             self._file = aifc.open(self._fh)
+        except aifc.Error:
+            # Return to the beginning of the file to try the WAV reader.
+            self._fh.seek(0)
+        else:
             self._is_aif = True
             return
-        except aifc.Error:
-            pass
 
         try:
             self._file = wave.open(self._fh)
-            self._is_aif = False
-            return
         except wave.Error:
             pass
+        else:
+            self._is_aif = False
+            return
 
         raise UnsupportedError()
     

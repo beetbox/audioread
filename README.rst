@@ -70,6 +70,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.0.3
+  Use the rawread (standard-library) backend for .wav files.
+
 1.0.2
   Send SIGKILL, not SIGTERM, to ffmpeg processes to avoid occasional hangs.
 
