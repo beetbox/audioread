@@ -70,6 +70,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.1.0
+  Add support for Sun/NeXT `Au files`_ via the standard-library ``sunau``
+  module (thanks to Dan Ellis).
+
 1.0.3
   Use the rawread (standard-library) backend for .wav files.
 
@@ -120,6 +124,8 @@ Version History
 
 0.1
   Initial release.
+
+.. _Au files: http://en.wikipedia.org/wiki/Au_file_format
 
 Et Cetera
 ---------
