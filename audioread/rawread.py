@@ -15,6 +15,7 @@
 """Uses standard-library modules to read AIFF, AIFF-C, and WAV files."""
 import wave
 import aifc
+import sunau
 import audioop
 import struct
 from . import DecodeError
@@ -50,15 +51,27 @@ class RawAudioFile(object):
             # Return to the beginning of the file to try the WAV reader.
             self._fh.seek(0)
         else:
-            self._is_aif = True
+            self._needs_byteswap = True
             return
 
         try:
             self._file = wave.open(self._fh)
         except wave.Error:
+            # Return to the beginning of the file to try the next reader
+            self._fh.seek(0)
             pass
         else:
-            self._is_aif = False
+            self._needs_byteswap = False
+            return
+
+        try:
+            self._file = sunau.open(self._fh)
+        except wave.Error:
+            # Return to the beginning of the file to try the next reader
+            self._fh.seek(0)
+            pass
+        else:
+            self._needs_byteswap = True
             return
 
         raise UnsupportedError()
@@ -94,7 +107,7 @@ class RawAudioFile(object):
 
             # Make sure we have the desired bitdepth and endianness.
             data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
-            if self._is_aif and self._file.getcomptype() != 'sowt':
+            if self._needs_byteswap and self._file.getcomptype() != 'sowt':
                 # Big-endian data. Swap endianness.
                 data = byteswap(data)
             yield data
