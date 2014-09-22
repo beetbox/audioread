@@ -13,7 +13,8 @@
 # included in all copies or substantial portions of the Software.
 
 import os
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 
 def _read(fn):
     path = os.path.join(os.path.dirname(__file__), fn)
