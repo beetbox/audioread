@@ -8,18 +8,24 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
 """Read audio data using the ffmpeg command line tools via a UNIX
 pipe.
 """
+
+import sys
 import subprocess
 import re
 import threading
 import select
 import time
+from Queue import Queue, Empty
+from threading  import Thread
+
+
 from . import DecodeError
 
 class FFmpegError(DecodeError):
@@ -65,7 +71,7 @@ class FFmpegAudioFile(object):
         try:
             self.proc = subprocess.Popen(
                 ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1
             )
         except OSError:
             raise NotInstalledError()
@@ -81,30 +87,49 @@ class FFmpegAudioFile(object):
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout on this thread.
+
+	def enqueue_output(out, queue, block_size):
+            # from http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
+            data = None
+            while True:
+                data = out.read(block_size)
+                queue.put(data)
+                if not data:
+                    break
+
+        q = Queue()
+        t = Thread(target=enqueue_output, args=(self.proc.stdout, q, block_size))
+	t.daemon = True # thread dies with the program
+	t.start()
+
         start_time = time.time()
         while True:
             # Wait for data to be available or a timeout.
-            rready, _, xready = select.select((self.proc.stdout,),
-                                              (), (self.proc.stdout,),
-                                              timeout)
-            end_time = time.time()
-            if not rready and not xready:
-                if end_time - start_time >= timeout:
-                    # Nothing interesting has happened for a while --
-                    # FFmpeg is probably hanging.
-                    raise ReadTimeoutError(
-                        'ffmpeg output: %s' %
-                        ''.join(self.stderr_reader.data)
-                    )
+            # rready, _, xready = select.select((self.proc.stdout,), (), (self.proc.stdout,), timeout)
+            #############################################################################################
+            data = None
+            try:
+                data = q.get(timeout = timeout)
+                if data:
+                    yield data
                 else:
-                    # Keep waiting.
-                    continue
-            start_time = end_time
+                    break
+            except Empty:
+                end_time = time.time()
+                if not data:
+                    if end_time - start_time >= timeout:
+                        # Nothing interesting has happened for a while --
+                        # FFmpeg is probably hanging.
+                        raise ReadTimeoutError(
+                            'ffmpeg output: %s' %
+                            ''.join(self.stderr_reader.data)
+                        )
+                    else:
+                        start_time = end_time
+                        # Keep waiting.
+                        continue
 
-            data = self.proc.stdout.read(block_size)
-            if not data:
-                break
-            yield data
+                #############################################################################################
 
     def _get_info(self):
         """Reads the tool's output from its stderr stream, extracts the
@@ -116,11 +141,11 @@ class FFmpegAudioFile(object):
             if not line:
                 # EOF and data not found.
                 raise CommunicationError("stream info not found")
-            
+
             # In Python 3, result of reading from stderr is bytes.
             if isinstance(line, bytes):
                 line = line.decode('utf8', 'ignore')
-                
+
             line = line.strip().lower()
 
             if 'no such file' in line:
