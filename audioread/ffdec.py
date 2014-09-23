@@ -75,20 +75,22 @@ class QueueReaderThread(threading.Thread):
     """A thread that consumes data from a filehandle and sends the data
     over a Queue.
     """
-    def __init__(self, fh, queue, blocksize=1024):
+    def __init__(self, fh, blocksize=1024, discard=False):
         super(QueueReaderThread, self).__init__()
         self.fh = fh
         self.blocksize = blocksize
         self.daemon = True
-        self.queue = queue
+        self.discard = discard
+        self.queue = None if discard else queue.Queue()
 
     def run(self):
         while True:
             data = self.fh.read(self.blocksize)
+            if not self.discard:
+                self.queue.put(data)
             if not data:
-                self.queue.put(None)  # Indicate EOF.
+                # Stream closed (EOF).
                 break
-            self.queue.put(data)
 
 
 class FFmpegAudioFile(object):
@@ -106,29 +108,29 @@ class FFmpegAudioFile(object):
         self._get_info()
 
         # Start a separate thread to read the rest of the data from
-        # stderr.
+        # stderr. This (a) avoids filling up the OS buffer and (b)
+        # collects the error output for diagnosis.
         self.stderr_reader = ReaderThread(self.proc.stderr)
         self.stderr_reader.start()
 
-        self.stdin_reader = None
-        self.audio_queue = queue.Queue()
+        self.stdout_reader = None
 
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
-        # Read from stdout in a separate thread and poll the queue for datas.
-        self.stdin_reader = QueueReaderThread(
+        # Read from stdout in a separate thread and consume data from
+        # the queue.
+        self.stdout_reader = QueueReaderThread(
             self.proc.stdout,
-            self.audio_queue,
             block_size,
         )
-        self.stdin_reader.start()
+        self.stdout_reader.start()
 
         start_time = time.time()
         while True:
             # Wait for data to be available or a timeout.
             data = None
             try:
-                data = self.audio_queue.get(timeout=timeout)
+                data = self.stdout_reader.queue.get(timeout=timeout)
                 if data:
                     yield data
                 else:
@@ -226,13 +228,23 @@ class FFmpegAudioFile(object):
         # Kill the process if it is still running.
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.kill()
-            # Flush the stdout buffer (stderr already flushed).
-            stdout_reader = ReaderThread(self.proc.stdout)
-            stdout_reader.start()
+
+            # If we don't already have a thread to consume the stderr
+            # stream, create one. This thread throws away the data but
+            # helps clear the process' output buffer to ensure proper
+            # shutdown. (The stderr stream is guaranteed to already have
+            # a consumer thread.)
+            if not self.stdout_reader:
+                stdout_reader = QueueReaderThread(self.proc.stdout,
+                                                  discard=True)
+                stdout_reader.start()
+
+            # Wait for the process to finish shutting down.
             self.proc.wait()
 
         # Empty the queue from the data-consumer thread.
-        self.audio_queue.queue.clear()
+        if self.stdout_reader:
+            self.stdout_reader.queue.queue.clear()
 
     def __del__(self):
         self.close()
