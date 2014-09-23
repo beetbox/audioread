@@ -70,6 +70,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.2.0
+  Add support for FFmpeg on Windows (thanks to Jean-Christophe Saad-Dupuy).
+
 1.1.0
   Add support for Sun/NeXT `Au files`_ via the standard-library ``sunau``
   module (thanks to Dan Ellis).

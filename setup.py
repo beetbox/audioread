@@ -15,12 +15,14 @@
 import os
 from distutils.core import setup
 
+
 def _read(fn):
     path = os.path.join(os.path.dirname(__file__), fn)
     return open(path).read()
 
+
 setup(name='audioread',
-      version='1.1.0',
+      version='1.2.0',
       description='multi-library, cross-platform audio decoding',
       author='Adrian Sampson',
       author_email='adrian@radbox.org',
