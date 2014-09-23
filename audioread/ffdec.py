@@ -80,15 +80,15 @@ class QueueReaderThread(threading.Thread):
         self.fh = fh
         self.blocksize = blocksize
         self.daemon = True
-        self.data = queue
+        self.queue = queue
 
     def run(self):
-        data = None
         while True:
             data = self.fh.read(self.blocksize)
-            self.data.put(data)
             if not data:
+                self.queue.put(None)  # Indicate EOF.
                 break
+            self.queue.put(data)
 
 
 class FFmpegAudioFile(object):
@@ -132,6 +132,7 @@ class FFmpegAudioFile(object):
                 if data:
                     yield data
                 else:
+                    # End of file.
                     break
             except queue.Empty:
                 # Queue read timed out.
