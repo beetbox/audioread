@@ -114,8 +114,6 @@ class FFmpegAudioFile(object):
         start_time = time.time()
         while True:
             # Wait for data to be available or a timeout.
-            # rready, _, xready = select.select((self.proc.stdout,), (), (self.proc.stdout,), timeout)
-            #############################################################################################
             data = None
             try:
                 data = q.get(timeout = timeout)
@@ -138,8 +136,6 @@ class FFmpegAudioFile(object):
                         start_time = end_time
                         # Keep waiting.
                         continue
-
-                #############################################################################################
 
     def _get_info(self):
         """Reads the tool's output from its stderr stream, extracts the
