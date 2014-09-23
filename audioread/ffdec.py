@@ -118,7 +118,7 @@ class FFmpegAudioFile(object):
         self.stderr_reader = ReaderThread(self.proc.stderr)
         self.stderr_reader.start()
 
-    def read_data(self, block_size=4096, timeout=10.0):
+    def read_data(self, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout in a separate thread and consume data from
         # the queue.
@@ -226,10 +226,6 @@ class FFmpegAudioFile(object):
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.kill()
             self.proc.wait()
-
-        # Empty the queue from the data-consumer thread.
-        if self.stdout_reader:
-            self.stdout_reader.queue.queue.clear()
 
     def __del__(self):
         self.close()
