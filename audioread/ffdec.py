@@ -95,7 +95,7 @@ class QueueReaderThread(threading.Thread):
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
-    def __init__(self, filename):
+    def __init__(self, filename, block_size=4096):
         try:
             self.proc = subprocess.Popen(
                 ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
@@ -113,18 +113,15 @@ class FFmpegAudioFile(object):
         self.stderr_reader = ReaderThread(self.proc.stderr)
         self.stderr_reader.start()
 
-        self.stdout_reader = None
+        # Start another thread to consume the standard output of the
+        # process, which contains raw audio data.
+        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+        self.stdout_reader.start()
 
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout in a separate thread and consume data from
         # the queue.
-        self.stdout_reader = QueueReaderThread(
-            self.proc.stdout,
-            block_size,
-        )
-        self.stdout_reader.start()
-
         start_time = time.time()
         while True:
             # Wait for data to be available or a timeout.
@@ -228,18 +225,6 @@ class FFmpegAudioFile(object):
         # Kill the process if it is still running.
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.kill()
-
-            # If we don't already have a thread to consume the stderr
-            # stream, create one. This thread throws away the data but
-            # helps clear the process' output buffer to ensure proper
-            # shutdown. (The stderr stream is guaranteed to already have
-            # a consumer thread.)
-            if not self.stdout_reader:
-                stdout_reader = QueueReaderThread(self.proc.stdout,
-                                                  discard=True)
-                stdout_reader.start()
-
-            # Wait for the process to finish shutting down.
             self.proc.wait()
 
         # Empty the queue from the data-consumer thread.
