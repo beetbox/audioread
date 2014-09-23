@@ -65,6 +65,24 @@ class ReaderThread(threading.Thread):
                 break
             self.data.append(data)
 
+class QueueReaderThread(threading.Thread):
+    """A thread that consumes data from a filehandle and store data in a threadsafe queue.
+    """
+    def __init__(self, fh, queue, blocksize=1024):
+        super(QueueReaderThread, self).__init__()
+        self.fh = fh
+        self.blocksize = blocksize
+        self.daemon = True
+        self.data = queue
+
+    def run(self):
+        data = None
+        while True:
+            data = self.fh.read(self.blocksize)
+            self.data.put(data)
+            if not data:
+                break
+
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename):
@@ -84,23 +102,14 @@ class FFmpegAudioFile(object):
         self.stderr_reader = ReaderThread(self.proc.stderr)
         self.stderr_reader.start()
 
+        self.stdin_reader = None
+
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
-        # Read from stdout on this thread.
-
-        def enqueue_output(out, queue, block_size):
-            # from http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
-            data = None
-            while True:
-                data = out.read(block_size)
-                queue.put(data)
-                if not data:
-                    break
-
+        # Read from stdout in a separate thread and poll the queue for datas.
         q = Queue()
-        t = Thread(target=enqueue_output, args=(self.proc.stdout, q, block_size))
-        t.daemon = True # thread dies with the program
-        t.start()
+        self.stdin_reader = QueueReaderThread(self.proc.stdout, q, block_size)
+        self.stdin_reader.start()
 
         start_time = time.time()
         while True:
@@ -115,6 +124,7 @@ class FFmpegAudioFile(object):
                 else:
                     break
             except Empty:
+                # No data available in the queue
                 end_time = time.time()
                 if not data:
                     if end_time - start_time >= timeout:
