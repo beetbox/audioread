@@ -71,7 +71,7 @@ class FFmpegAudioFile(object):
         try:
             self.proc = subprocess.Popen(
                 ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
         except OSError:
             raise NotInstalledError()
