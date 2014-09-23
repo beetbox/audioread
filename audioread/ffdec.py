@@ -88,7 +88,7 @@ class FFmpegAudioFile(object):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout on this thread.
 
-	def enqueue_output(out, queue, block_size):
+        def enqueue_output(out, queue, block_size):
             # from http://stackoverflow.com/questions/375427/non-blocking-read-on-a-subprocess-pipe-in-python
             data = None
             while True:
@@ -99,8 +99,8 @@ class FFmpegAudioFile(object):
 
         q = Queue()
         t = Thread(target=enqueue_output, args=(self.proc.stdout, q, block_size))
-	t.daemon = True # thread dies with the program
-	t.start()
+        t.daemon = True # thread dies with the program
+        t.start()
 
         start_time = time.time()
         while True:
