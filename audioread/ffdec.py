@@ -104,6 +104,11 @@ class FFmpegAudioFile(object):
         except OSError:
             raise NotInstalledError()
 
+        # Start another thread to consume the standard output of the
+        # process, which contains raw audio data.
+        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+        self.stdout_reader.start()
+
         # Read relevant information from stderr.
         self._get_info()
 
@@ -112,11 +117,6 @@ class FFmpegAudioFile(object):
         # collects the error output for diagnosis.
         self.stderr_reader = ReaderThread(self.proc.stderr)
         self.stderr_reader.start()
-
-        # Start another thread to consume the standard output of the
-        # process, which contains raw audio data.
-        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
-        self.stdout_reader.start()
 
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
