@@ -48,29 +48,6 @@ class ReadTimeoutError(FFmpegError):
     """Reading from the ffmpeg command-line tool timed out."""
 
 
-class ReaderThread(threading.Thread):
-    """A thread that consumes data from a filehandle. This is used to ensure
-    that a buffer for an input stream never fills up.
-    """
-    # It may seem a little hacky, but this is the most straightforward &
-    # reliable way I can think of to do this. select() is sort of
-    # inefficient because it doesn't indicate how much is available to
-    # read -- so I end up reading character by character.
-    def __init__(self, fh, blocksize=1024):
-        super(ReaderThread, self).__init__()
-        self.fh = fh
-        self.blocksize = blocksize
-        self.daemon = True
-        self.data = []
-
-    def run(self):
-        while True:
-            data = self.fh.read(self.blocksize)
-            if not data:
-                break
-            self.data.append(data)
-
-
 class QueueReaderThread(threading.Thread):
     """A thread that consumes data from a filehandle and sends the data
     over a Queue.
@@ -115,7 +92,7 @@ class FFmpegAudioFile(object):
         # Start a separate thread to read the rest of the data from
         # stderr. This (a) avoids filling up the OS buffer and (b)
         # collects the error output for diagnosis.
-        self.stderr_reader = ReaderThread(self.proc.stderr)
+        self.stderr_reader = QueueReaderThread(self.proc.stderr)
         self.stderr_reader.start()
 
     def read_data(self, timeout=10.0):
@@ -140,10 +117,9 @@ class FFmpegAudioFile(object):
                     if end_time - start_time >= timeout:
                         # Nothing interesting has happened for a while --
                         # FFmpeg is probably hanging.
-                        raise ReadTimeoutError(
-                            'ffmpeg output: %s' %
-                            ''.join(self.stderr_reader.data)
-                        )
+                        raise ReadTimeoutError('ffmpeg output: {}'.format(
+                            ''.join(self.stderr_reader.queue.queue)
+                        ))
                     else:
                         start_time = end_time
                         # Keep waiting.
