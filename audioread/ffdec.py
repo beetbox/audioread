@@ -1,5 +1,5 @@
 # This file is part of audioread.
-# Copyright 2012, Adrian Sampson.
+# Copyright 2014, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -12,8 +12,8 @@
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
-"""Read audio data using the ffmpeg command line tools via a UNIX
-pipe.
+"""Read audio data using the ffmpeg command line tool via its standard
+output.
 """
 
 import subprocess
@@ -111,14 +111,14 @@ class FFmpegAudioFile(object):
         self.stderr_reader.start()
 
         self.stdin_reader = None
-        self.audio_datas = queue.Queue()
+        self.audio_queue = queue.Queue()
 
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout in a separate thread and poll the queue for datas.
         self.stdin_reader = QueueReaderThread(
             self.proc.stdout,
-            self.audio_datas,
+            self.audio_queue,
             block_size,
         )
         self.stdin_reader.start()
@@ -128,13 +128,13 @@ class FFmpegAudioFile(object):
             # Wait for data to be available or a timeout.
             data = None
             try:
-                data = self.audio_datas.get(timeout=timeout)
+                data = self.audio_queue.get(timeout=timeout)
                 if data:
                     yield data
                 else:
                     break
             except queue.Empty:
-                # No data available in the queue
+                # Queue read timed out.
                 end_time = time.time()
                 if not data:
                     if end_time - start_time >= timeout:
@@ -222,14 +222,16 @@ class FFmpegAudioFile(object):
 
     def close(self):
         """Close the ffmpeg process used to perform the decoding."""
+        # Kill the process if it is still running.
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.kill()
             # Flush the stdout buffer (stderr already flushed).
             stdout_reader = ReaderThread(self.proc.stdout)
             stdout_reader.start()
             self.proc.wait()
-        # ensure the queue is cleared
-        self.audio_datas.queue.clear()
+
+        # Empty the queue from the data-consumer thread.
+        self.audio_queue.queue.clear()
 
     def __del__(self):
         self.close()
