@@ -16,14 +16,11 @@
 pipe.
 """
 
-import sys
 import subprocess
 import re
 import threading
-import select
 import time
 from Queue import Queue, Empty
-from threading  import Thread
 
 
 from . import DecodeError
