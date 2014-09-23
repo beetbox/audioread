@@ -25,23 +25,28 @@ try:
 except ImportError:
     import Queue as queue
 
-
 from . import DecodeError
+
 
 class FFmpegError(DecodeError):
     pass
 
+
 class CommunicationError(FFmpegError):
     """Raised when the output of FFmpeg is not parseable."""
+
 
 class UnsupportedError(FFmpegError):
     """The file could not be decoded by FFmpeg."""
 
+
 class NotInstalledError(FFmpegError):
     """Could not find the ffmpeg binary."""
 
+
 class ReadTimeoutError(FFmpegError):
     """Reading from the ffmpeg command-line tool timed out."""
+
 
 class ReaderThread(threading.Thread):
     """A thread that consumes data from a filehandle. This is used to ensure
@@ -65,8 +70,10 @@ class ReaderThread(threading.Thread):
                 break
             self.data.append(data)
 
+
 class QueueReaderThread(threading.Thread):
-    """A thread that consumes data from a filehandle and store data in a threadsafe queue.
+    """A thread that consumes data from a filehandle and sends the data
+    over a Queue.
     """
     def __init__(self, fh, queue, blocksize=1024):
         super(QueueReaderThread, self).__init__()
@@ -82,6 +89,7 @@ class QueueReaderThread(threading.Thread):
             self.data.put(data)
             if not data:
                 break
+
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
@@ -108,7 +116,11 @@ class FFmpegAudioFile(object):
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
         # Read from stdout in a separate thread and poll the queue for datas.
-        self.stdin_reader = QueueReaderThread(self.proc.stdout, self.audio_datas, block_size)
+        self.stdin_reader = QueueReaderThread(
+            self.proc.stdout,
+            self.audio_datas,
+            block_size,
+        )
         self.stdin_reader.start()
 
         start_time = time.time()
@@ -116,7 +128,7 @@ class FFmpegAudioFile(object):
             # Wait for data to be available or a timeout.
             data = None
             try:
-                data = self.audio_datas.get(timeout = timeout)
+                data = self.audio_datas.get(timeout=timeout)
                 if data:
                     yield data
                 else:
@@ -197,10 +209,12 @@ class FFmpegAudioFile(object):
         )
         if match:
             durparts = list(map(int, match.groups()))
-            duration = durparts[0] * 60 * 60 + \
-                       durparts[1] * 60 + \
-                       durparts[2] + \
-                       float(durparts[3]) / 10
+            duration = (
+                durparts[0] * 60 * 60 +
+                durparts[1] * 60 +
+                durparts[2] +
+                float(durparts[3]) / 10
+            )
             self.duration = duration
         else:
             # No duration found.
@@ -227,7 +241,7 @@ class FFmpegAudioFile(object):
     # Context manager.
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
         return False
-
