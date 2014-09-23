@@ -20,7 +20,10 @@ import subprocess
 import re
 import threading
 import time
-from Queue import Queue, Empty
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 
 from . import DecodeError
@@ -100,7 +103,7 @@ class FFmpegAudioFile(object):
         self.stderr_reader.start()
 
         self.stdin_reader = None
-        self.audio_datas = Queue()
+        self.audio_datas = queue.Queue()
 
     def read_data(self, block_size=4096, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
@@ -118,7 +121,7 @@ class FFmpegAudioFile(object):
                     yield data
                 else:
                     break
-            except Empty:
+            except queue.Empty:
                 # No data available in the queue
                 end_time = time.time()
                 if not data:
