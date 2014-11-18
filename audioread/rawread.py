@@ -8,7 +8,7 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
@@ -22,8 +22,10 @@ from . import DecodeError
 
 TARGET_WIDTH = 2
 
+
 class UnsupportedError(DecodeError):
     """File is neither an AIFF nor a WAV file."""
+
 
 def byteswap(s):
     """Swaps the endianness of the bytesting s, which must be an array
@@ -32,11 +34,12 @@ def byteswap(s):
     """
     assert len(s) % 2 == 0
     parts = []
-    for i in xrange(0, len(s), 2):
-        chunk = s[i:i+2]
-        newchunk =struct.pack('<h', *struct.unpack('>h', chunk))
+    for i in range(0, len(s), 2):
+        chunk = s[i:i + 2]
+        newchunk = struct.pack('<h', *struct.unpack('>h', chunk))
         parts.append(newchunk)
-    return ''.join(parts)
+    return b''.join(parts)
+
 
 class RawAudioFile(object):
     """An AIFF or WAV file that can be read by the Python standard
@@ -75,7 +78,7 @@ class RawAudioFile(object):
             return
 
         raise UnsupportedError()
-    
+
     def close(self):
         """Close the underlying file."""
         self._file.close()
@@ -115,6 +118,7 @@ class RawAudioFile(object):
     # Context manager.
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
         return False

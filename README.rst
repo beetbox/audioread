@@ -71,7 +71,9 @@ Version History
 ---------------
 
 1.2.1
-  Fix an unhandled exception when opening non-raw audio files (thanks to aostanin).
+  Fix an unhandled exception when opening non-raw audio files (thanks to
+  aostanin).
+  Fix Python 3 compatibility the raw-file backend.
 
 1.2.0
   Add support for FFmpeg on Windows (thanks to Jean-Christophe Saad-Dupuy).
