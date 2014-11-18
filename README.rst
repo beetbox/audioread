@@ -70,6 +70,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.2.1
+  In progress.
+
 1.2.0
   Add support for FFmpeg on Windows (thanks to Jean-Christophe Saad-Dupuy).
 
