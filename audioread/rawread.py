@@ -66,7 +66,7 @@ class RawAudioFile(object):
 
         try:
             self._file = sunau.open(self._fh)
-        except wave.Error:
+        except sunau.Error:
             # Return to the beginning of the file to try the next reader
             self._fh.seek(0)
             pass
