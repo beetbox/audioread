@@ -11,7 +11,8 @@ currently supports:
 - `Core Audio`_ on Mac OS X via `ctypes`_. (PyObjC not required.)
 - `MAD`_ via the `pymad`_ bindings.
 - `FFmpeg`_ via its command-line interface.
-- The standard library `wave`_ and `aifc`_ modules (for WAV and AIFF files).
+- The standard library `wave`_, `aifc`_, and `sunau`_ modules (for
+  uncompressed audio formats).
 
 .. _Gstreamer: http://gstreamer.freedesktop.org/
 .. _gst-python: http://gstreamer.freedesktop.org/modules/gst-python.html
@@ -22,6 +23,7 @@ currently supports:
 .. _FFmpeg: http://ffmpeg.org/
 .. _wave: http://docs.python.org/library/wave.html
 .. _aifc: http://docs.python.org/library/aifc.html
+.. _aifc: http://docs.python.org/library/sunau.html
 
 Use the library like so::
 
