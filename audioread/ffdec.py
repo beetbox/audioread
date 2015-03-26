@@ -74,19 +74,14 @@ class QueueReaderThread(threading.Thread):
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename, block_size=4096):
-        # creation_flag default value
+        # creationflags default value for non windows os
         subprocess_flags = 0
-        # for windows, we set a custom creationflag to be passed to popen
+        # for windows, we set a custom creationflags to be passed to popen
         # to avoid the Windows GPF dialog if the invoked program dies.
+        # see
+        # http://stackoverflow.com/questions/5069224/handling-subprocess-crash-in-windows/5103935#5103935
         if sys.platform.startswith("win"):
-            # See comp.os.ms-windows.programmer.win32
-            # How to suppress crash notification dialog?, Jan 14,2004 -
-            # Raymond Chen's response [1]
-            import ctypes
-            SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
-            ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
-            subprocess_flags = 0x8000000 #win32con.CREATE_NO_WINDOW?
-
+            subprocess_flags = 0x8000000 | 0x0002
         try:
             self.proc = subprocess.Popen(
                 ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
