@@ -74,22 +74,28 @@ class QueueReaderThread(threading.Thread):
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename, block_size=4096):
-        # creationflags default value for non windows os
-        subprocess_flags = 0
-        # for windows, we set a custom creationflags to be passed to popen
-        # to avoid the Windows GPF dialog if the invoked program dies.
-        # see
-        # http://stackoverflow.com/questions/5069224/handling-subprocess-crash-in-windows/5103935#5103935
-        if sys.platform.startswith("win"):
-            subprocess_flags = 0x8000000 | 0x0002
+        self.is_windows = sys.platform.startswith("win")
         try:
+            if self.is_windows:
+                # by default, windows will display a dialog if the subprocess dies.
+                # passing SEM_NOGPFAULTERRORBOX to SetErrorMode disable this behavior 
+                SEM_NOGPFAULTERRORBOX=0x0002
+                import ctypes
+                # we call SetErrorMode in 2 steps to avoid overriding existing error mode
+                previous_error_mode = ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
+                ctypes.windll.kernel32.SetErrorMode(previous_error_mode|SEM_NOGPFAULTERRORBOX)
+
             self.proc = subprocess.Popen(
                 ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                creationflags=subprocess_flags,
             )
         except OSError:
             raise NotInstalledError()
+        finally:
+            if self.is_windows:
+                import ctypes
+                # reset previous error mode
+                ctypes.windll.kernel32.SetErrorMode(previous_error_mode)
 
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.
