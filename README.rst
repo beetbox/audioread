@@ -72,6 +72,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+1.2.2
+  When running FFmpeg on Windows, disable its crash dialog. Thanks to
+  jcsaaddupuy.
+
 1.2.1
   Fix an unhandled exception when opening non-raw audio files (thanks to
   aostanin).
