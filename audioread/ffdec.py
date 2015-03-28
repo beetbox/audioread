@@ -74,27 +74,36 @@ class QueueReaderThread(threading.Thread):
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename, block_size=4096):
-        self.is_windows = sys.platform.startswith("win")
-        try:
-            if self.is_windows:
-                # by default, windows will display a dialog if the subprocess dies.
-                # passing SEM_NOGPFAULTERRORBOX to SetErrorMode disable this behavior 
-                SEM_NOGPFAULTERRORBOX=0x0002
-                import ctypes
-                # we call SetErrorMode in 2 steps to avoid overriding existing error mode
-                previous_error_mode = ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
-                ctypes.windll.kernel32.SetErrorMode(previous_error_mode|SEM_NOGPFAULTERRORBOX)
+        # On Windows, we need to disable the subprocess's crash dialog
+        # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
+        # disables this behavior.
+        windows = sys.platform.startswith("win")
+        if windows:
+            SEM_NOGPFAULTERRORBOX = 0x0002
+            import ctypes
+            # We call SetErrorMode in two steps to avoid overriding
+            # existing error mode.
+            previous_error_mode = \
+                ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
+            ctypes.windll.kernel32.SetErrorMode(
+                previous_error_mode | SEM_NOGPFAULTERRORBOX
+            )
 
+        try:
             self.proc = subprocess.Popen(
                 ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
+
         except OSError:
             raise NotInstalledError()
+
         finally:
-            if self.is_windows:
+            # Reset previous error mode on Windows. (We can change this
+            # back now because the flag was inherited by the subprocess;
+            # we don't need to keep it set in the parent process.)
+            if windows:
                 import ctypes
-                # reset previous error mode
                 ctypes.windll.kernel32.SetErrorMode(previous_error_mode)
 
         # Start another thread to consume the standard output of the
