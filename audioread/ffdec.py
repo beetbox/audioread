@@ -70,6 +70,8 @@ class QueueReaderThread(threading.Thread):
                 # Stream closed (EOF).
                 break
 
+# Windows error switch is global, we need a lock to ensure thread safety
+windows_error_mode_lock = threading.Lock()
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
@@ -79,6 +81,7 @@ class FFmpegAudioFile(object):
         # disables this behavior.
         windows = sys.platform.startswith("win")
         if windows:
+            windows_error_mode_lock.acquire()
             SEM_NOGPFAULTERRORBOX = 0x0002
             import ctypes
             # We call SetErrorMode in two steps to avoid overriding
@@ -103,9 +106,11 @@ class FFmpegAudioFile(object):
             # back now because the flag was inherited by the subprocess;
             # we don't need to keep it set in the parent process.)
             if windows:
-                import ctypes
-                ctypes.windll.kernel32.SetErrorMode(previous_error_mode)
-
+                try:
+                    import ctypes
+                    ctypes.windll.kernel32.SetErrorMode(previous_error_mode)
+                finally:
+                    windows_error_mode_lock.release()
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.
         self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
