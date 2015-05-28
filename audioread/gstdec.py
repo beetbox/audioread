@@ -47,9 +47,11 @@ file:
 """
 from __future__ import with_statement
 
-import gst
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import GObject, Gst
+
 import sys
-import gobject
 import threading
 import os
 import urllib
@@ -110,8 +112,9 @@ class IncompleteGStreamerError(GStreamerError):
 
 _shared_loop_thread = None
 _loop_thread_lock = threading.RLock()
-gobject.threads_init()
 
+GObject.threads_init()
+Gst.init(None)
 
 def get_loop_thread():
     """Get the shared main-loop thread.
@@ -130,7 +133,7 @@ class MainLoopThread(threading.Thread):
     """
     def __init__(self):
         super(MainLoopThread, self).__init__()
-        self.loop = gobject.MainLoop()
+        self.loop = GObject.MainLoop()
         self.daemon = True
 
     def run(self):
@@ -164,12 +167,13 @@ class GstAudioFile(object):
         self.finished = False
 
         # Set up the Gstreamer pipeline.
-        self.pipeline = gst.Pipeline()
-        try:
-            self.dec = gst.element_factory_make("uridecodebin")
-            self.conv = gst.element_factory_make("audioconvert")
-            self.sink = gst.element_factory_make("appsink")
-        except gst.ElementNotFoundError:
+        self.pipeline = Gst.Pipeline()
+
+        self.dec = Gst.ElementFactory.make("uridecodebin", None)
+        self.conv = Gst.ElementFactory.make("audioconvert", None)
+        self.sink = Gst.ElementFactory.make("appsink", None)
+
+        if self.dec is None or self.conv is None or self.sink is None:
             # uridecodebin, audioconvert, or appsink is missing. We need
             # gst-plugins-base.
             raise IncompleteGStreamerError()
@@ -193,7 +197,7 @@ class GstAudioFile(object):
         # We want short integer data.
         self.sink.set_property(
             'caps',
-            gst.Caps('audio/x-raw-int, width=16, depth=16, signed=true'),
+            Gst.Caps.from_string('audio/x-raw, format=(string)S16LE'),
         )
         # TODO set endianness?
         # Set up the characteristics of the output. We don't want to
@@ -207,20 +211,23 @@ class GstAudioFile(object):
         self.sink.set_property('sync', False)
         # The callback to receive decoded data.
         self.sink.set_property('emit-signals', True)
-        self.sink.connect("new-buffer", self._new_buffer)
+        self.sink.connect("new-sample", self._new_sample)
 
         # We'll need to know when the stream becomes ready and we get
         # its attributes. This semaphore will become available when the
         # caps are received. That way, when __init__() returns, the file
         # (and its attributes) will be ready for reading.
         self.ready_sem = threading.Semaphore(0)
-        self.caps_handler = self.sink.get_pad("sink").connect(
+        self.caps_handler = self.sink.get_static_pad("sink").connect(
             "notify::caps", self._notify_caps
         )
 
         # Link up everything but the decoder (which must be linked only
         # when it becomes ready).
-        self.pipeline.add(self.dec, self.conv, self.sink)
+        self.pipeline.add(self.dec)
+        self.pipeline.add(self.conv)
+        self.pipeline.add(self.sink)
+
         self.conv.link(self.sink)
 
         # Set up the queue for data and run the main thread.
@@ -233,7 +240,7 @@ class GstAudioFile(object):
         # Return as soon as the stream is ready!
         self.running = True
         self.got_caps = False
-        self.pipeline.set_state(gst.STATE_PLAYING)
+        self.pipeline.set_state(Gst.State.PLAYING)
         self.ready_sem.acquire()
         if self.read_exc:
             # An error occurred before the stream became ready.
@@ -247,18 +254,18 @@ class GstAudioFile(object):
         # This also is our opportunity to read information about the
         # stream.
         self.got_caps = True
-        info = pad.get_negotiated_caps()[0]
+        info = pad.get_current_caps().get_structure(0)
 
         # Stream attributes.
-        self.channels = info['channels']
-        self.samplerate = info['rate']
+        self.channels = info.get_int('channels')[1]
+        self.samplerate = info.get_int('rate')[1]
 
         # Query duration.
-        q = gst.query_new_duration(gst.FORMAT_TIME)
+        q = Gst.Query.new_duration(Gst.Format.TIME)
         if pad.get_peer().query(q):
             # Success.
             format, length = q.parse_duration()
-            if format == gst.FORMAT_TIME:
+            if format == Gst.Format.TIME:
                 self.duration = float(length) / 1000000000
             else:
                 self.read_exc = MetadataMissingError(
@@ -275,9 +282,9 @@ class GstAudioFile(object):
 
     def _pad_added(self, element, pad):
         # Decoded data is ready. Connect up the decoder, finally.
-        name = pad.get_caps()[0].get_name()
-        if name.startswith('audio/x-raw-'):
-            nextpad = self.conv.get_pad('sink')
+        name = pad.query_caps(None).to_string()
+        if name.startswith('audio/x-raw'):
+            nextpad = self.conv.get_static_pad('sink')
             if not nextpad.is_linked():
                 self._got_a_pad = True
                 pad.link(nextpad)
@@ -290,12 +297,12 @@ class GstAudioFile(object):
             self.read_exc = NoStreamError()
             self.ready_sem.release()  # No effect if we've already started.
 
-    def _new_buffer(self, sink):
+    def _new_sample(self, sink):
         if self.running:
             # New data is available from the pipeline! Dump it into our
             # queue (or possibly block if we're full).
-            buf = sink.emit('pull-buffer')
-            self.queue.put(str(buf))
+            buf = sink.emit('pull-sample').get_buffer()
+            self.queue.put(str(buf.extract_dup(0, buf.get_size())))
 
     def _unkown_type(self, uridecodebin, decodebin, caps):
         # This is called *before* the stream becomes ready when the
@@ -309,7 +316,7 @@ class GstAudioFile(object):
 
     def _message(self, bus, message):
         if not self.finished:
-            if message.type == gst.MESSAGE_EOS:
+            if message.type == Gst.MessageType.EOS:
                 # The file is done. Tell the consumer thread.
                 self.queue.put(SENTINEL)
                 if not self.got_caps:
@@ -318,7 +325,7 @@ class GstAudioFile(object):
                     self.read_exc = NoStreamError()
                     self.ready_sem.release()
 
-            elif message.type == gst.MESSAGE_ERROR:
+            elif message.type == Gst.MessageType.ERROR:
                 gerror, debug = message.parse_error()
                 if 'not-linked' in debug:
                     self.read_exc = NoStreamError()
@@ -350,7 +357,7 @@ class GstAudioFile(object):
             # Stop reading the file.
             self.dec.set_property("uri", None)
             # Block spurious signals.
-            self.sink.get_pad("sink").disconnect(self.caps_handler)
+            self.sink.get_static_pad("sink").disconnect(self.caps_handler)
 
             # Make space in the output queue to let the decoder thread
             # finish. (Otherwise, the thread blocks on its enqueue and
@@ -361,7 +368,7 @@ class GstAudioFile(object):
                 pass
 
             # Halt the pipeline (closing file).
-            self.pipeline.set_state(gst.STATE_NULL)
+            self.pipeline.set_state(Gst.State.NULL)
 
     def __del__(self):
         self.close()
