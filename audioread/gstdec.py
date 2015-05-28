@@ -289,7 +289,6 @@ class GstAudioFile(object):
                 self._got_a_pad = True
                 pad.link(nextpad)
 
-
     def _no_more_pads(self, element):
         # Sent when the pads are done adding (i.e., there are no more
         # streams in the file). If we haven't gotten at least one
