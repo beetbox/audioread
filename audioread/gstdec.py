@@ -301,8 +301,8 @@ class GstAudioFile(object):
         if self.running:
             # New data is available from the pipeline! Dump it into our
             # queue (or possibly block if we're full).
-            buf = sink.emit('pull-sample')
-            self.queue.put(str(buf))
+            buf = sink.emit('pull-sample').get_buffer()
+            self.queue.put(str(buf.extract_dup(0, buf.get_size())))
 
     def _unkown_type(self, uridecodebin, decodebin, caps):
         # This is called *before* the stream becomes ready when the
