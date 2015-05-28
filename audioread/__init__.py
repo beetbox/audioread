@@ -25,9 +25,9 @@ class NoBackendError(DecodeError):
     """
 
 def _gst_available():
-    """Determines whether pygstreamer is installed."""
+    """Determines whether Gstreamer bindings for GObject are installed."""
     try:
-        import gst
+        from gi.repository import Gst
     except ImportError:
         return False
     else:
