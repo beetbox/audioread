@@ -303,6 +303,7 @@ class GstAudioFile(object):
             # queue (or possibly block if we're full).
             buf = sink.emit('pull-sample').get_buffer()
             self.queue.put(str(buf.extract_dup(0, buf.get_size())))
+        return Gst.FlowReturn.OK
 
     def _unkown_type(self, uridecodebin, decodebin, caps):
         # This is called *before* the stream becomes ready when the
