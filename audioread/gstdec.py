@@ -250,6 +250,8 @@ class GstAudioFile(object):
     # Gstreamer callbacks.
 
     def _notify_caps(self, pad, args):
+        """The callback for the sinkpad's "notify::caps" signal.
+        """
         # The sink has started to receive data, so the stream is ready.
         # This also is our opportunity to read information about the
         # stream.
@@ -281,6 +283,8 @@ class GstAudioFile(object):
     _got_a_pad = False
 
     def _pad_added(self, element, pad):
+        """The callback for GstElement's "pad-added" signal.
+        """
         # Decoded data is ready. Connect up the decoder, finally.
         name = pad.query_caps(None).to_string()
         if name.startswith('audio/x-raw'):
@@ -290,6 +294,8 @@ class GstAudioFile(object):
                 pad.link(nextpad)
 
     def _no_more_pads(self, element):
+        """The callback for GstElement's "no-more-pads" signal.
+        """
         # Sent when the pads are done adding (i.e., there are no more
         # streams in the file). If we haven't gotten at least one
         # decodable stream, raise an exception.
@@ -298,6 +304,8 @@ class GstAudioFile(object):
             self.ready_sem.release()  # No effect if we've already started.
 
     def _new_sample(self, sink):
+        """The callback for appsink's "new-sample" signal.
+        """
         if self.running:
             # New data is available from the pipeline! Dump it into our
             # queue (or possibly block if we're full).
@@ -306,6 +314,8 @@ class GstAudioFile(object):
         return Gst.FlowReturn.OK
 
     def _unkown_type(self, uridecodebin, decodebin, caps):
+        """The callback for decodebin's "unknown-type" signal.
+        """
         # This is called *before* the stream becomes ready when the
         # file can't be read.
         streaminfo = caps.to_string()
@@ -316,6 +326,9 @@ class GstAudioFile(object):
         self.ready_sem.release()
 
     def _message(self, bus, message):
+        """The callback for GstBus's "message" signal (for two kinds of
+        messages).
+        """
         if not self.finished:
             if message.type == Gst.MessageType.EOS:
                 # The file is done. Tell the consumer thread.
