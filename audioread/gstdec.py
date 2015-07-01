@@ -46,6 +46,7 @@ file:
     >>>     print f.duration
 """
 from __future__ import with_statement
+from __future__ import division
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -272,18 +273,10 @@ class GstAudioFile(object):
         self.samplerate = info.get_int('rate')[1]
 
         # Query duration.
-        q = Gst.Query.new_duration(Gst.Format.TIME)
-        if pad.get_peer().query(q):
-            # Success.
-            format, length = q.parse_duration()
-            if format == Gst.Format.TIME:
-                self.duration = float(length) / 1000000000
-            else:
-                self.read_exc = MetadataMissingError(
-                    'duration in unknown format'
-                )
+        success, length = pad.get_peer().query_duration(Gst.Format.TIME)
+        if success:
+            self.duration = length / 1000000000
         else:
-            # Query failed.
             self.read_exc = MetadataMissingError('duration not available')
 
         # Allow constructor to complete.
