@@ -54,9 +54,18 @@ from gi.repository import GObject, Gst
 import sys
 import threading
 import os
-import urllib
-import Queue
 from . import DecodeError
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
+
 
 QUEUE_SIZE = 10
 BUFFER_SIZE = 10
@@ -185,7 +194,7 @@ class GstAudioFile(object):
         bus.connect("message::error", self._message)
 
         # Configure the input.
-        uri = 'file://' + urllib.quote(os.path.abspath(path))
+        uri = 'file://' + quote(os.path.abspath(path))
         self.dec.set_property("uri", uri)
         # The callback to connect the input.
         self.dec.connect("pad-added", self._pad_added)
@@ -231,7 +240,7 @@ class GstAudioFile(object):
         self.conv.link(self.sink)
 
         # Set up the queue for data and run the main thread.
-        self.queue = Queue.Queue(QUEUE_SIZE)
+        self.queue = queue.Queue(QUEUE_SIZE)
         self.thread = get_loop_thread()
 
         # This wil get filled with an exception if opening fails.
@@ -378,7 +387,7 @@ class GstAudioFile(object):
             # the interpreter hangs.)
             try:
                 self.queue.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
             # Halt the pipeline (closing file).
