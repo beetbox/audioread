@@ -7,7 +7,7 @@ audioread
 Decode audio files using whichever backend is available. The library
 currently supports:
 
-- `Gstreamer`_ via `gst-python`_.
+- `Gstreamer`_ via `PyGObject`_.
 - `Core Audio`_ on Mac OS X via `ctypes`_. (PyObjC not required.)
 - `MAD`_ via the `pymad`_ bindings.
 - `FFmpeg`_ via its command-line interface.
@@ -24,6 +24,7 @@ currently supports:
 .. _wave: http://docs.python.org/library/wave.html
 .. _aifc: http://docs.python.org/library/aifc.html
 .. _aifc: http://docs.python.org/library/sunau.html
+.. _PyGObject: https://wiki.gnome.org/Projects/PyGObject
 
 Use the library like so::
 
@@ -52,8 +53,7 @@ unsupported by the backends; if the file doesn't exist, a standard ``IOError``
 will be raised.
 
 Audioread is "universal" and supports both Python 2 (2.6+) and Python 3
-(3.2+). The GStreamer backend currently only supports 2.x since gst-python is
-2.x-only.
+(3.2+).
 
 Future Work
 -----------
@@ -71,6 +71,10 @@ convert compressed audio files to WAV files.
 
 Version History
 ---------------
+
+2.0.0
+  The GStreamer backend now uses GStreamer 1.x via the new
+  gobject-introspection API (and is compatible with Python 3).
 
 1.2.2
   When running FFmpeg on Windows, disable its crash dialog. Thanks to

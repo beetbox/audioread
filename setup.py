@@ -22,7 +22,7 @@ def _read(fn):
 
 
 setup(name='audioread',
-      version='1.2.1',
+      version='2.0.0',
       description='multi-library, cross-platform audio decoding',
       author='Adrian Sampson',
       author_email='adrian@radbox.org',
@@ -43,5 +43,6 @@ setup(name='audioread',
           'Programming Language :: Python :: 3.2',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
       ],
 )
