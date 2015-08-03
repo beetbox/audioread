@@ -55,14 +55,6 @@ will be raised.
 Audioread is "universal" and supports both Python 2 (2.6+) and Python 3
 (3.2+).
 
-Future Work
------------
-
-Possible additional backends:
-
--  PyOgg?
--  Other command-line tools?
-
 Example
 -------
 
