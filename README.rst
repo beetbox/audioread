@@ -10,7 +10,7 @@ currently supports:
 - `Gstreamer`_ via `PyGObject`_.
 - `Core Audio`_ on Mac OS X via `ctypes`_. (PyObjC not required.)
 - `MAD`_ via the `pymad`_ bindings.
-- `FFmpeg`_ via its command-line interface.
+- `FFmpeg`_ or `Libav`_ via its command-line interface.
 - The standard library `wave`_, `aifc`_, and `sunau`_ modules (for
   uncompressed audio formats).
 
@@ -21,6 +21,7 @@ currently supports:
 .. _MAD: http://www.underbit.com/products/mad/
 .. _pymad: http://spacepants.org/src/pymad/
 .. _FFmpeg: http://ffmpeg.org/
+.. _Libav: https://www.libav.org/
 .. _wave: http://docs.python.org/library/wave.html
 .. _aifc: http://docs.python.org/library/aifc.html
 .. _aifc: http://docs.python.org/library/sunau.html
@@ -63,6 +64,9 @@ convert compressed audio files to WAV files.
 
 Version History
 ---------------
+
+2.1.0
+  The FFmpeg backend can now also use Libav's ``avconv`` command.
 
 2.0.0
   The GStreamer backend now uses GStreamer 1.x via the new

@@ -28,6 +28,8 @@ except ImportError:
 
 from . import DecodeError
 
+COMMANDS = ('ffmpeg', 'avconv')
+
 
 class FFmpegError(DecodeError):
     pass
@@ -71,6 +73,25 @@ class QueueReaderThread(threading.Thread):
                 break
 
 
+def popen_multiple(commands, command_args, *args, **kwargs):
+    """Like `subprocess.Popen`, but can try multiple commands in case
+    some are not available.
+
+    `commands` is an iterable of command names and `command_args` are
+    the rest of the arguments that, when appended to the command name,
+    make up the full first argument to `subprocess.Popen`. The
+    other positional and keyword arguments are passed through.
+    """
+    for i, command in enumerate(commands):
+        cmd = [command] + command_args
+        try:
+            return subprocess.Popen(cmd, *args, **kwargs)
+        except OSError:
+            if i == len(commands) - 1:
+                # No more commands to try.
+                raise
+
+
 # For Windows error switch management, we need a lock to keep the mode
 # adjustment atomic.
 windows_error_mode_lock = threading.Lock()
@@ -96,8 +117,9 @@ class FFmpegAudioFile(object):
             )
 
         try:
-            self.proc = subprocess.Popen(
-                ['ffmpeg', '-i', filename, '-f', 's16le', '-'],
+            self.proc = popen_multiple(
+                COMMANDS,
+                ['-i', filename, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
 
