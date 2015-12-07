@@ -8,30 +8,34 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
 """Decode audio files."""
+
 
 class DecodeError(Exception):
     """The base exception class for all decoding errors raised by this
     package.
     """
 
+
 class NoBackendError(DecodeError):
     """The file could not be decoded by any backend. Either no backends
     are available or each available backend failed to decode the file.
     """
 
+
 def _gst_available():
     """Determines whether Gstreamer bindings for GObject are installed."""
     try:
-        from gi.repository import Gst
+        from gi.repository import Gst  # noqa
     except ImportError:
         return False
     else:
         return True
+
 
 def _ca_available():
     """Determines whether CoreAudio is available (i.e., we're running on
@@ -41,14 +45,16 @@ def _ca_available():
     lib = ctypes.util.find_library('AudioToolbox')
     return lib is not None
 
+
 def _mad_available():
     """Determines whether the pymad bindings are available."""
     try:
-        import mad
+        import mad  # noqa
     except ImportError:
         return False
     else:
         return True
+
 
 def audio_open(path):
     """Open an audio file using a library that is available on this

@@ -8,7 +8,7 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
@@ -20,6 +20,7 @@ import os
 import wave
 import contextlib
 
+
 def decode(filename):
     filename = os.path.abspath(os.path.expanduser(filename))
     if not os.path.exists(filename):
@@ -28,7 +29,7 @@ def decode(filename):
 
     try:
         with audioread.audio_open(filename) as f:
-            print('Input file: %i channels at %i Hz; %.1f seconds.' % \
+            print('Input file: %i channels at %i Hz; %.1f seconds.' %
                   (f.channels, f.samplerate, f.duration),
                   file=sys.stderr)
             print('Backend:', str(type(f).__module__).split('.')[1],
@@ -45,6 +46,7 @@ def decode(filename):
     except audioread.DecodeError:
         print("File could not be decoded.", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == '__main__':
     decode(sys.argv[1])
