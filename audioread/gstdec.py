@@ -361,6 +361,8 @@ class GstAudioFile(object):
             raise StopIteration
         return val
 
+    __next__ = next
+
     def __iter__(self):
         return self
 
