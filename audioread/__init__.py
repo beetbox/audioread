@@ -28,13 +28,25 @@ class NoBackendError(DecodeError):
 
 
 def _gst_available():
-    """Determines whether Gstreamer bindings for GObject are installed."""
+    """Determine whether Gstreamer and the Python GObject bindings are
+    installed.
+    """
+    try:
+        import gi
+    except ImportError:
+        return False
+
+    try:
+        gi.require_version('Gst', '1.0')
+    except (ValueError, AttributeError):
+        return False
+
     try:
         from gi.repository import Gst  # noqa
     except ImportError:
         return False
-    else:
-        return True
+
+    return True
 
 
 def _ca_available():

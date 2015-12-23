@@ -67,6 +67,7 @@ Version History
 
 2.1.0
   The FFmpeg backend can now also use Libav's ``avconv`` command.
+  Fix a warning by requiring GStreamer >= 1.0.
 
 2.0.0
   The GStreamer backend now uses GStreamer 1.x via the new
