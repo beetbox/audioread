@@ -361,6 +361,7 @@ class GstAudioFile(object):
             raise StopIteration
         return val
 
+    # For Python 3 compatibility.
     __next__ = next
 
     def __iter__(self):
