@@ -14,7 +14,7 @@
 
 """Command-line tool to decode audio files to WAV files."""
 from __future__ import print_function
-import audioread.ffdec
+import audioread
 import sys
 import os
 import wave
@@ -28,7 +28,7 @@ def decode(filename):
         sys.exit(1)
 
     try:
-        with audioread.ffdec.FFmpegAudioFile(filename) as f:
+        with audioread.audio_open(filename) as f:
             print('Input file: %i channels at %i Hz; %.1f seconds.' %
                   (f.channels, f.samplerate, f.duration),
                   file=sys.stderr)
