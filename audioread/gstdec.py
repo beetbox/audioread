@@ -312,7 +312,7 @@ class GstAudioFile(object):
             # New data is available from the pipeline! Dump it into our
             # queue (or possibly block if we're full).
             buf = sink.emit('pull-sample').get_buffer()
-            self.queue.put(str(buf.extract_dup(0, buf.get_size())))
+            self.queue.put(buf.extract_dup(0, buf.get_size()))
         return Gst.FlowReturn.OK
 
     def _unkown_type(self, uridecodebin, decodebin, caps):
@@ -360,6 +360,8 @@ class GstAudioFile(object):
             # End of stream.
             raise StopIteration
         return val
+
+    __next__ = next
 
     def __iter__(self):
         return self
