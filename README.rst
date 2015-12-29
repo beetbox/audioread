@@ -24,7 +24,7 @@ currently supports:
 .. _Libav: https://www.libav.org/
 .. _wave: http://docs.python.org/library/wave.html
 .. _aifc: http://docs.python.org/library/aifc.html
-.. _aifc: http://docs.python.org/library/sunau.html
+.. _sunau: http://docs.python.org/library/sunau.html
 .. _PyGObject: https://wiki.gnome.org/Projects/PyGObject
 
 Use the library like so::
@@ -64,6 +64,9 @@ convert compressed audio files to WAV files.
 
 Version History
 ---------------
+
+2.1.1
+  Just fix ReST formatting in the README.
 
 2.1.0
   The FFmpeg backend can now also use Libav's ``avconv`` command.
