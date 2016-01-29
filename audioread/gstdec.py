@@ -388,7 +388,6 @@ class GstAudioFile(object):
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(Gst.State.NULL)
-            self.pipeline.unref()
 
     def __del__(self):
         self.close()
