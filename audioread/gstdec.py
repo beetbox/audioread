@@ -373,6 +373,11 @@ class GstAudioFile(object):
             self.running = False
             self.finished = True
 
+            # Release bus 
+            bus = self.pipeline.get_bus()
+            bus.unref()
+            bus.remove_signal_watch()
+
             # Stop reading the file.
             self.dec.set_property("uri", None)
             # Block spurious signals.
