@@ -369,6 +369,10 @@ class GstAudioFile(object):
 
     # Cleanup.
     def close(self, force=False):
+        """Close the file and clean up associated resources.
+
+        Calling `close()` a second time has no effect.
+        """
         if self.running or force:
             self.running = False
             self.finished = True
@@ -393,6 +397,11 @@ class GstAudioFile(object):
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(Gst.State.NULL)
+
+            # Delete the pipeline object. This seems to be necessary on Python
+            # 2, but not Python 3 for some reason: on 3.5, at least, the
+            # pipeline gets dereferenced automatically.
+            del self.pipeline
 
     def __del__(self):
         self.close()
