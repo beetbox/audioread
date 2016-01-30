@@ -65,6 +65,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.2
+  Fix a file descriptor leak when opening and closing many files using
+  GStreamer.
+
 2.1.1
   Just fix ReST formatting in the README.
 

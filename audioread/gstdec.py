@@ -373,6 +373,11 @@ class GstAudioFile(object):
             self.running = False
             self.finished = True
 
+            # Unregister for signals, which we registered for above with
+            # `add_signal_watch`. (Without this, GStreamer leaks file
+            # descriptors.)
+            self.pipeline.get_bus().remove_signal_watch()
+
             # Stop reading the file.
             self.dec.set_property("uri", None)
             # Block spurious signals.
