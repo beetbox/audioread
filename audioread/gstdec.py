@@ -50,7 +50,7 @@ from __future__ import division
 
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import GObject, Gst
+from gi.repository import GLib, Gst
 
 import sys
 import threading
@@ -123,7 +123,6 @@ class IncompleteGStreamerError(GStreamerError):
 _shared_loop_thread = None
 _loop_thread_lock = threading.RLock()
 
-GObject.threads_init()
 Gst.init(None)
 
 def get_loop_thread():
@@ -143,7 +142,7 @@ class MainLoopThread(threading.Thread):
     """
     def __init__(self):
         super(MainLoopThread, self).__init__()
-        self.loop = GObject.MainLoop()
+        self.loop = GLib.MainLoop()
         self.daemon = True
 
     def run(self):
