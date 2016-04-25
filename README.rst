@@ -65,6 +65,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.3
+  Avoid some warnings in the GStreamer backend when using modern versions of
+  GLib. We now require at least GLib 2.32.
+
 2.1.2
   Fix a file descriptor leak when opening and closing many files using
   GStreamer.
