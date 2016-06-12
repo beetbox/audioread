@@ -21,6 +21,7 @@ import subprocess
 import re
 import threading
 import time
+import os
 try:
     import queue
 except ImportError:
@@ -117,10 +118,13 @@ class FFmpegAudioFile(object):
             )
 
         try:
+            self.devnull = open(os.devnull)
             self.proc = popen_multiple(
                 COMMANDS,
                 ['-i', filename, '-f', 's16le', '-'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=self.devnull,
             )
 
         except OSError:
@@ -258,6 +262,7 @@ class FFmpegAudioFile(object):
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.kill()
             self.proc.wait()
+            self.devnull.close()
 
     def __del__(self):
         self.close()

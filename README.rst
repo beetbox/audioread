@@ -65,6 +65,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.4
+  Fix a bug in the FFmpeg backend where, after closing a file, the program's
+  standard input stream would be "broken" and wouldn't receive any input.
+
 2.1.3
   Avoid some warnings in the GStreamer backend when using modern versions of
   GLib. We now require at least GLib 2.32.
