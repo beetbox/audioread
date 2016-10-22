@@ -104,8 +104,9 @@ windows_error_mode_lock = threading.Lock()
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename=None, audio=None, block_size=4096):
-        self.filename=filename
-        self.audio = audio
+        self.openFile = True if filename is not None else False
+        self.readAudio = True if audio is not None else False
+
         # On Windows, we need to disable the subprocess's crash dialog
         # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
         # disables this behavior.
@@ -121,9 +122,9 @@ class FFmpegAudioFile(object):
             ctypes.windll.kernel32.SetErrorMode(
                 previous_error_mode | SEM_NOGPFAULTERRORBOX
             )
-
+        
         try:
-            if filename is not None:
+            if self.openFile:
                 self.devnull = open(os.devnull)
                 self.proc = popen_multiple(
                     COMMANDS,
@@ -132,7 +133,7 @@ class FFmpegAudioFile(object):
                     stderr=subprocess.PIPE,
                     stdin=self.devnull,
                 )
-            elif audio is not None:
+            elif self.readAudio:
                 self.devnull = open(os.devnull)
                 self.proc = popen_multiple(
                     COMMANDS,
@@ -160,18 +161,17 @@ class FFmpegAudioFile(object):
 
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.
-        if filename is not None:
+        if self.openFile:
             self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
-        elif audio is not None:
+            self.stdout_reader.start()
+        elif self.readAudio:
             o, e = self.proc.communicate(input=audio.read()) 
             print e
             self.output = StringIO(o)
             self.error = StringIO(e)
-            self.stdout_reader = QueueReaderThread(self.output, block_size)
         else:
             raise NoInputError()
 
-        self.stdout_reader.start()
 
         # Read relevant information from stderr.
         self._get_info()
@@ -179,13 +179,9 @@ class FFmpegAudioFile(object):
         # Start a separate thread to read the rest of the data from
         # stderr. This (a) avoids filling up the OS buffer and (b)
         # collects the error output for diagnosis.
-        if filename is not None:
+        if self.openFile:
             self.stderr_reader = QueueReaderThread(self.proc.stderr)
-        elif audio is not None:
-            self.stderr_reader = QueueReaderThread(self.error, block_size)
-        else:
-            raise NoInputError()
-        self.stderr_reader.start()
+            self.stderr_reader.start()
 
     def read_data(self, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
@@ -196,7 +192,12 @@ class FFmpegAudioFile(object):
             # Wait for data to be available or a timeout.
             data = None
             try:
-                data = self.stdout_reader.queue.get(timeout=timeout)
+                if self.openFile:
+                    data = self.stdout_reader.queue.get(timeout=timeout)
+                elif self.readAudio:
+                    data = self.output.read()
+                else:
+                    raise NoInputError()
                 if data:
                     yield data
                 else:
@@ -223,10 +224,12 @@ class FFmpegAudioFile(object):
         """
         out_parts = []
         while True:
-            if self.filename is not None:
+            if self.openFile:
                 line = self.proc.stderr.readline()
-            else:
+            elif self.readAudio:
                 line = self.error.readline()
+            else:
+                raise NoInputError()
 
             if not line:
                 # EOF and data not found.
