@@ -22,6 +22,7 @@ import re
 import threading
 import time
 import os
+from cStringIO import StringIO
 try:
     import queue
 except ImportError:
@@ -51,6 +52,8 @@ class NotInstalledError(FFmpegError):
 class ReadTimeoutError(FFmpegError):
     """Reading from the ffmpeg command-line tool timed out."""
 
+class NoInputError(FFmpegError):
+    """Reading from the ffmpeg command-line tool timed out."""
 
 class QueueReaderThread(threading.Thread):
     """A thread that consumes data from a filehandle and sends the data
@@ -100,7 +103,9 @@ windows_error_mode_lock = threading.Lock()
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
-    def __init__(self, filename, block_size=4096):
+    def __init__(self, filename=None, audio=None, block_size=4096):
+        self.filename=filename
+        self.audio = audio
         # On Windows, we need to disable the subprocess's crash dialog
         # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
         # disables this behavior.
@@ -118,14 +123,26 @@ class FFmpegAudioFile(object):
             )
 
         try:
-            self.devnull = open(os.devnull)
-            self.proc = popen_multiple(
-                COMMANDS,
-                ['-i', filename, '-f', 's16le', '-'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                stdin=self.devnull,
-            )
+            if filename is not None:
+                self.devnull = open(os.devnull)
+                self.proc = popen_multiple(
+                    COMMANDS,
+                    ['-i', filename, '-f', 's16le', '-'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdin=self.devnull,
+                )
+            elif audio is not None:
+                self.devnull = open(os.devnull)
+                self.proc = popen_multiple(
+                    COMMANDS,
+                    ['-i', '-', '-f', 's16le', '-'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE,
+                )
+            else:
+                raise NoInputError()
 
         except OSError:
             raise NotInstalledError()
@@ -143,7 +160,17 @@ class FFmpegAudioFile(object):
 
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.
-        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+        if filename is not None:
+            self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+        elif audio is not None:
+            o, e = self.proc.communicate(input=audio.read()) 
+            print e
+            self.output = StringIO(o)
+            self.error = StringIO(e)
+            self.stdout_reader = QueueReaderThread(self.output, block_size)
+        else:
+            raise NoInputError()
+
         self.stdout_reader.start()
 
         # Read relevant information from stderr.
@@ -152,7 +179,12 @@ class FFmpegAudioFile(object):
         # Start a separate thread to read the rest of the data from
         # stderr. This (a) avoids filling up the OS buffer and (b)
         # collects the error output for diagnosis.
-        self.stderr_reader = QueueReaderThread(self.proc.stderr)
+        if filename is not None:
+            self.stderr_reader = QueueReaderThread(self.proc.stderr)
+        elif audio is not None:
+            self.stderr_reader = QueueReaderThread(self.error, block_size)
+        else:
+            raise NoInputError()
         self.stderr_reader.start()
 
     def read_data(self, timeout=10.0):
@@ -191,7 +223,11 @@ class FFmpegAudioFile(object):
         """
         out_parts = []
         while True:
-            line = self.proc.stderr.readline()
+            if self.filename is not None:
+                line = self.proc.stderr.readline()
+            else:
+                line = self.error.readline()
+
             if not line:
                 # EOF and data not found.
                 raise CommunicationError("stream info not found")
