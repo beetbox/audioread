@@ -68,45 +68,60 @@ def _mad_available():
         return True
 
 
-def audio_open(path=None, audio=None):
+def audio_open(path):
     """Open an audio file using a library that is available on this
     system.
     """
     # Standard-library WAV and AIFF readers.
-    #from . import rawread
-    #try:
-    #    return rawread.RawAudioFile(path)
-    #except DecodeError:
-    #    pass
+    from . import rawread
+    try:
+        return rawread.RawAudioFile(path)
+    except DecodeError:
+        pass
 
     # Core Audio.
-    #if _ca_available():
-    #    from . import macca
-    #    try:
-    #        return macca.ExtAudioFile(path)
-    #    except DecodeError:
-    #        pass
+    if _ca_available():
+        from . import macca
+        try:
+            return macca.ExtAudioFile(path)
+        except DecodeError:
+            pass
 
     # GStreamer.
-    #if _gst_available():
-    #    from . import gstdec
-    #    try:
-    #        return gstdec.GstAudioFile(path)
-    #    except DecodeError:
-    #        pass
+    if _gst_available():
+        from . import gstdec
+        try:
+            return gstdec.GstAudioFile(path)
+        except DecodeError:
+            pass
 
     # MAD.
-    #if _mad_available():
-    #    from . import maddec
-    #    try:
-    #        return maddec.MadAudioFile(path)
-    #    except DecodeError:
-    #        pass
+    if _mad_available():
+        from . import maddec
+        try:
+            return maddec.MadAudioFile(path)
+        except DecodeError:
+            pass
 
     # FFmpeg.
     from . import ffdec
     try:
-        return ffdec.FFmpegAudioFile(path,audio)
+        return ffdec.FFmpegAudioFile(path)
+    except DecodeError:
+        pass
+
+    # All backends failed!
+    raise NoBackendError()
+
+
+def decode(audio):
+    """Given a file-like object containing encoded audio data, create an
+    audio file object that produces its *raw* data.
+    """
+    # FFmpeg.
+    from . import ffdec
+    try:
+        return ffdec.FFmpegAudioFile(audio=audio)
     except DecodeError:
         pass
 
