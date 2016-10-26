@@ -58,7 +58,7 @@ class NoInputError(FFmpegError):
 class QueueReaderThread(threading.Thread):
     """A thread that consumes data from a filehandle and sends the data
     over a Queue.
-    """
+     """
     def __init__(self, fh, blocksize=1024, discard=False):
         super(QueueReaderThread, self).__init__()
         self.fh = fh
@@ -70,12 +70,25 @@ class QueueReaderThread(threading.Thread):
     def run(self):
         while True:
             data = self.fh.read(self.blocksize)
+            #print data
             if not self.discard:
                 self.queue.put(data)
             if not data:
                 # Stream closed (EOF).
                 break
 
+class WriterThread(threading.Thread):
+    """A thread that writes data to a filehandle
+    """
+    def __init__(self, fh, audio=None):
+        super(WriterThread, self).__init__()
+        self.fh = fh
+        self.audio = audio
+        self.daemon = True
+
+    def run(self):
+        self.fh.write(self.audio.read())
+        self.fh.close()
 
 def popen_multiple(commands, command_args, *args, **kwargs):
     """Like `subprocess.Popen`, but can try multiple commands in case
@@ -159,29 +172,24 @@ class FFmpegAudioFile(object):
                 finally:
                     windows_error_mode_lock.release()
 
+        # Start a thread to write the compressed audio to Popen.stdin
+        if self.readAudio:
+            self.stdin_writer = WriterThread(self.proc.stdin,audio)
+            self.stdin_writer.start()
+        
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.
-        if self.openFile:
-            self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
-            self.stdout_reader.start()
-        elif self.readAudio:
-            o, e = self.proc.communicate(input=audio.read()) 
-            print e
-            self.output = StringIO(o)
-            self.error = StringIO(e)
-        else:
-            raise NoInputError()
-
-
+        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+        self.stdout_reader.start()
+        
         # Read relevant information from stderr.
         self._get_info()
 
         # Start a separate thread to read the rest of the data from
         # stderr. This (a) avoids filling up the OS buffer and (b)
         # collects the error output for diagnosis.
-        if self.openFile:
-            self.stderr_reader = QueueReaderThread(self.proc.stderr)
-            self.stderr_reader.start()
+        self.stderr_reader = QueueReaderThread(self.proc.stderr)
+        self.stderr_reader.start()
 
     def read_data(self, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
@@ -192,12 +200,8 @@ class FFmpegAudioFile(object):
             # Wait for data to be available or a timeout.
             data = None
             try:
-                if self.openFile:
-                    data = self.stdout_reader.queue.get(timeout=timeout)
-                elif self.readAudio:
-                    data = self.output.read()
-                else:
-                    raise NoInputError()
+                data = self.stdout_reader.queue.get(timeout=timeout)
+                
                 if data:
                     yield data
                 else:
@@ -224,12 +228,7 @@ class FFmpegAudioFile(object):
         """
         out_parts = []
         while True:
-            if self.openFile:
-                line = self.proc.stderr.readline()
-            elif self.readAudio:
-                line = self.error.readline()
-            else:
-                raise NoInputError()
+            line = self.proc.stderr.readline()
 
             if not line:
                 # EOF and data not found.
