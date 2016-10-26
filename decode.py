@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # This file is part of audioread.
 # Copyright 2011, Adrian Sampson.
 #
@@ -30,7 +28,7 @@ def decode(filename):
         sys.exit(1)
 
     try:
-        with audioread.audio_open(audio=open(filename,"r")) as f:
+        with audioread.audio_open(filename) as f:
             print('Input file: %i channels at %i Hz; %.1f seconds.' %
                   (f.channels, f.samplerate, f.duration),
                   file=sys.stderr)
