@@ -75,17 +75,25 @@ class QueueReaderThread(threading.Thread):
 
 
 class WriterThread(threading.Thread):
-    """A thread that writes data to a filehandle
+    """A thread that writes the data of readfile into a writefile
+    a block at a time
     """
-    def __init__(self, fh, audio=None):
+    def __init__(self, writefile, readfile=None, blocksize=1024):
         super(WriterThread, self).__init__()
-        self.fh = fh
-        self.audio = audio
+        self.writefile = writefile
+        self.readfile = readfile
+        self.blocksize = blocksize
         self.daemon = True
 
     def run(self):
-        self.fh.write(self.audio.read())
-        self.fh.close()
+        while True:
+            data = self.readfile.read(self.blocksize)
+            if data:
+                self.writefile.write(data)
+            else:
+                # readfile closed (EOF)
+                break
+        self.writefile.close()
 
 
 def popen_multiple(commands, command_args, *args, **kwargs):
@@ -174,7 +182,7 @@ class FFmpegAudioFile(object):
         # the compressed audio to the subprocess's standard input
         # stream.
         if not self.from_file:
-            self.stdin_writer = WriterThread(self.proc.stdin, audio)
+            self.stdin_writer = WriterThread(self.proc.stdin, audio, block_size)
             self.stdin_writer.start()
 
         # Start another thread to consume the standard output of the
