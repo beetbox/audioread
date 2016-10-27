@@ -53,12 +53,12 @@ class ReadTimeoutError(FFmpegError):
 
 
 class QueueReaderThread(threading.Thread):
-    """A thread that consumes data from a filehandle and sends the data
-    over a Queue.
+    """A thread that consumes data from a file-like object and sends the
+    data over a Queue.
     """
-    def __init__(self, fh, blocksize=1024, discard=False):
+    def __init__(self, file, blocksize=1024, discard=False):
         super(QueueReaderThread, self).__init__()
-        self.fh = fh
+        self.file = file
         self.blocksize = blocksize
         self.daemon = True
         self.discard = discard
@@ -66,7 +66,7 @@ class QueueReaderThread(threading.Thread):
 
     def run(self):
         while True:
-            data = self.fh.read(self.blocksize)
+            data = self.file.read(self.blocksize)
             if not self.discard:
                 self.queue.put(data)
             if not data:
@@ -75,10 +75,13 @@ class QueueReaderThread(threading.Thread):
 
 
 class WriterThread(threading.Thread):
-    """A thread that writes the data of readfile into a writefile
-    a block at a time
+    """A thread that reads data from one file-like object and writes it
+    to another, one block at a time.
     """
     def __init__(self, writefile, readfile=None, blocksize=1024):
+        """Create a thread that reads data from `readfile` and writes it
+        to `writefile`.
+        """
         super(WriterThread, self).__init__()
         self.writefile = writefile
         self.readfile = readfile
@@ -91,7 +94,7 @@ class WriterThread(threading.Thread):
             if data:
                 self.writefile.write(data)
             else:
-                # readfile closed (EOF)
+                # EOF.
                 break
         self.writefile.close()
 
