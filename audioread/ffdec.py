@@ -185,7 +185,8 @@ class FFmpegAudioFile(object):
         # the compressed audio to the subprocess's standard input
         # stream.
         if not self.from_file:
-            self.stdin_writer = WriterThread(self.proc.stdin, audio, block_size)
+            self.stdin_writer = WriterThread(self.proc.stdin, audio,
+                                             block_size)
             self.stdin_writer.start()
 
         # Start another thread to consume the standard output of the
