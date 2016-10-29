@@ -35,10 +35,10 @@ Use the library like so::
             do_something(buf)
 
 Buffers in the file can be accessed by iterating over the object returned from
-``audio_open``. Each buffer is a ``buffer`` or ``str`` object containing raw
-**16-bit little-endian signed integer PCM data**. (Currently, these PCM format
-parameters are not configurable, but this could be added to most of the
-backends.)
+``audio_open``. Each buffer is a bytes-like object (``buffer``, ``bytes``, or
+``bytearray``) containing raw **16-bit little-endian signed integer PCM
+data**. (Currently, these PCM format parameters are not configurable, but this
+could be added to most of the backends.)
 
 Additional values are available as fields on the audio file object:
 
