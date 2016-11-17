@@ -109,6 +109,9 @@ class RawAudioFile(object):
                 break
 
             # Make sure we have the desired bitdepth and endianness.
+            if old_width == 1:
+                # unsigned int => signed int
+                data = audioop.bias(data, old_width, 128)
             data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
             if self._needs_byteswap and self._file.getcomptype() != 'sowt':
                 # Big-endian data. Swap endianness.
