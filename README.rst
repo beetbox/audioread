@@ -65,6 +65,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.5
+  Properly clean up the file handle when the raw-file backends fail to decode
+  a file.
+
 2.1.4
   Fix a bug in the FFmpeg backend where, after closing a file, the program's
   standard input stream would be "broken" and wouldn't receive any input.

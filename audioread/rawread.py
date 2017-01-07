@@ -77,6 +77,8 @@ class RawAudioFile(object):
             self._needs_byteswap = True
             return
 
+        # None of the three libraries could open the file.
+        self._fh.close()
         raise UnsupportedError()
 
     def close(self):
