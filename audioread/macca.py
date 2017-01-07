@@ -8,7 +8,7 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
@@ -26,12 +26,15 @@ from . import DecodeError
 
 def _load_framework(name):
     return ctypes.cdll.LoadLibrary(ctypes.util.find_library(name))
+
+
 _coreaudio = _load_framework('AudioToolbox')
 _corefoundation = _load_framework('CoreFoundation')
 
-# Convert CFStrings to C strings. 
+# Convert CFStrings to C strings.
 _corefoundation.CFStringGetCStringPtr.restype = ctypes.c_char_p
-_corefoundation.CFStringGetCStringPtr.argtypes = [ctypes.c_void_p, ctypes.c_int]
+_corefoundation.CFStringGetCStringPtr.argtypes = [ctypes.c_void_p,
+                                                  ctypes.c_int]
 
 # Free memory.
 _corefoundation.CFRelease.argtypes = [ctypes.c_void_p]
@@ -82,6 +85,7 @@ def multi_char_literal(chars):
         num |= ord(char) << shift
     return num
 
+
 PROP_FILE_DATA_FORMAT = multi_char_literal('ffmt')
 PROP_CLIENT_DATA_FORMAT = multi_char_literal('cfmt')
 PROP_LENGTH = multi_char_literal('#frm')
@@ -107,6 +111,7 @@ class MacError(DecodeError):
             msg = 'error %i' % code
         super(MacError, self).__init__(msg)
 
+
 def check(err):
     """If err is nonzero, raise a MacError exception."""
     if err == ERROR_NOT_FOUND:
@@ -127,6 +132,7 @@ class CFObject(object):
         if _corefoundation:
             _corefoundation.CFRelease(self._obj)
 
+
 class CFURL(CFObject):
     def __init__(self, filename):
         if not isinstance(filename, bytes):
@@ -136,7 +142,7 @@ class CFURL(CFObject):
             0, filename, len(filename), False
         )
         super(CFURL, self).__init__(url)
-    
+
     def __str__(self):
         cfstr = _corefoundation.CFURLGetString(self._obj)
         out = _corefoundation.CFStringGetCStringPtr(cfstr, 0)
@@ -159,12 +165,14 @@ class AudioStreamBasicDescription(ctypes.Structure):
         ("mReserved",         ctypes.c_uint),
     ]
 
+
 class AudioBuffer(ctypes.Structure):
     _fields_ = [
         ("mNumberChannels", ctypes.c_uint),
         ("mDataByteSize",   ctypes.c_uint),
         ("mData",           ctypes.c_void_p),
     ]
+
 
 class AudioBufferList(ctypes.Structure):
     _fields_ = [
@@ -295,7 +303,8 @@ class ExtAudioFile(object):
 
         buflist = AudioBufferList()
         buflist.mNumberBuffers = 1
-        buflist.mBuffers[0].mNumberChannels = self._client_fmt.mChannelsPerFrame
+        buflist.mBuffers[0].mNumberChannels = \
+            self._client_fmt.mChannelsPerFrame
         buflist.mBuffers[0].mDataByteSize = blocksize
         buflist.mBuffers[0].mData = ctypes.cast(buf, ctypes.c_void_p)
 
@@ -303,14 +312,14 @@ class ExtAudioFile(object):
             check(_coreaudio.ExtAudioFileRead(
                 self._obj, ctypes.byref(frames), ctypes.byref(buflist)
             ))
-            
+
             assert buflist.mNumberBuffers == 1
             size = buflist.mBuffers[0].mDataByteSize
             if not size:
                 break
 
             data = ctypes.cast(buflist.mBuffers[0].mData,
-                            ctypes.POINTER(ctypes.c_char))
+                               ctypes.POINTER(ctypes.c_char))
             blob = data[:size]
             yield blob
 
@@ -324,9 +333,10 @@ class ExtAudioFile(object):
         if _coreaudio:
             self.close()
 
-    # Context manager.
+    # Context manager methods.
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
         return False
