@@ -66,8 +66,7 @@ Version History
 ---------------
 
 2.1.5
-  Properly clean up the file handle when the raw-file backends fail to decode
-  a file.
+  Properly clean up the file handle when a backend fails to decode a file.
 
 2.1.4
   Fix a bug in the FFmpeg backend where, after closing a file, the program's

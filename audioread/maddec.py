@@ -27,6 +27,7 @@ class MadAudioFile(object):
         self.fp = open(filename, 'rb')
         self.mf = mad.MadFile(self.fp)
         if not self.mf.total_time():  # Indicates a failed open.
+            self.fp.close()
             raise UnsupportedError()
 
     def close(self):
