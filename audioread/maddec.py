@@ -8,7 +8,7 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
 
@@ -16,15 +16,17 @@
 import mad
 from . import DecodeError
 
+
 class UnsupportedError(DecodeError):
     """The file is not readable by MAD."""
+
 
 class MadAudioFile(object):
     """MPEG audio file decoder using the MAD library."""
     def __init__(self, filename):
         self.fp = open(filename, 'rb')
         self.mf = mad.MadFile(self.fp)
-        if not self.mf.total_time(): # Indicates a failed open.
+        if not self.mf.total_time():  # Indicates a failed open.
             raise UnsupportedError()
 
     def close(self):
@@ -46,7 +48,7 @@ class MadAudioFile(object):
     def samplerate(self):
         """Sample rate in Hz."""
         return self.mf.samplerate()
-    
+
     @property
     def duration(self):
         """Length of the audio in seconds (a float)."""
@@ -75,6 +77,7 @@ class MadAudioFile(object):
     # Context manager.
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
         return False
