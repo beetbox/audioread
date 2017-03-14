@@ -67,6 +67,7 @@ Version History
 
 2.1.5
   Properly clean up the file handle when a backend fails to decode a file.
+  Fix parsing of "N.M" channel counts in the FFmpeg backend (thanks to @piem).
 
 2.1.4
   Fix a bug in the FFmpeg backend where, after closing a file, the program's
