@@ -231,9 +231,9 @@ class FFmpegAudioFile(object):
             if mode == 'stereo':
                 self.channels = 2
             else:
-                match = re.match(r'(\d+) ', mode)
-                if match:
-                    self.channels = int(match.group(1))
+                cmatch = re.match(r'(\d).?(\d)?', mode)
+                if cmatch:
+                    self.channels = sum(map(int, cmatch.group().split('.')))
                 else:
                     self.channels = 1
         else:
