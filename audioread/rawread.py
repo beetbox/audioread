@@ -18,13 +18,25 @@ import aifc
 import sunau
 import audioop
 import struct
+import sys
 from . import DecodeError
 
+# Produce two-byte (16-bit) output samples.
 TARGET_WIDTH = 2
+
+# Python 3.4 added support for 24-bit (3-byte) samples.
+if sys.version_info > (3, 4, 0):
+    SUPPORTED_WIDTHS = (1, 2, 3, 4)
+else:
+    SUPPORTED_WIDTHS = (1, 2, 4)
 
 
 class UnsupportedError(DecodeError):
     """File is not an AIFF, WAV, or Au file."""
+
+
+class BitWidthError(DecodeError):
+    """The file uses an unsupported bit width."""
 
 
 def byteswap(s):
@@ -51,35 +63,44 @@ class RawAudioFile(object):
         try:
             self._file = aifc.open(self._fh)
         except aifc.Error:
-            # Return to the beginning of the file to try the WAV reader.
+            # Return to the beginning of the file to try the next reader.
             self._fh.seek(0)
         else:
             self._needs_byteswap = True
+            self._check()
             return
 
         try:
             self._file = wave.open(self._fh)
         except wave.Error:
-            # Return to the beginning of the file to try the next reader
             self._fh.seek(0)
             pass
         else:
             self._needs_byteswap = False
+            self._check()
             return
 
         try:
             self._file = sunau.open(self._fh)
         except sunau.Error:
-            # Return to the beginning of the file to try the next reader
             self._fh.seek(0)
             pass
         else:
             self._needs_byteswap = True
+            self._check()
             return
 
         # None of the three libraries could open the file.
         self._fh.close()
         raise UnsupportedError()
+
+    def _check(self):
+        """Check that the files' parameters allow us to decode it and
+        raise an error otherwise.
+        """
+        if self._file.getsampwidth() not in SUPPORTED_WIDTHS:
+            self.close()
+            raise BitWidthError()
 
     def close(self):
         """Close the underlying file."""

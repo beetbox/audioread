@@ -68,6 +68,8 @@ Version History
 2.1.5
   Properly clean up the file handle when a backend fails to decode a file.
   Fix parsing of "N.M" channel counts in the FFmpeg backend (thanks to @piem).
+  Avoid a crash in the raw backend when a file uses an unsupported number of
+  bits per sample (namely, 24-bit samples in Python < 3.4).
 
 2.1.4
   Fix a bug in the FFmpeg backend where, after closing a file, the program's
