@@ -24,7 +24,7 @@ TARGET_WIDTH = 2
 
 
 class UnsupportedError(DecodeError):
-    """File is neither an AIFF nor a WAV file."""
+    """File is not an AIFF, WAV, or Au file."""
 
 
 def byteswap(s):
@@ -42,8 +42,8 @@ def byteswap(s):
 
 
 class RawAudioFile(object):
-    """An AIFF or WAV file that can be read by the Python standard
-    library modules ``wave`` and ``aifc``.
+    """An AIFF, WAV, or Au file that can be read by the Python standard
+    library modules ``wave``, ``aifc``, and ``sunau``.
     """
     def __init__(self, filename):
         self._fh = open(filename, 'rb')
