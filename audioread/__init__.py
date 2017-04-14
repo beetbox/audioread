@@ -14,6 +14,8 @@
 
 """Decode audio files."""
 
+from .version import version as __version__
+
 
 class DecodeError(Exception):
     """The base exception class for all decoding errors raised by this

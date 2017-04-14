@@ -14,6 +14,9 @@
 
 import os
 from distutils.core import setup
+import imp
+
+version = imp.load_source('audioread.version', 'audioread/version.py')
 
 
 def _read(fn):
@@ -22,7 +25,7 @@ def _read(fn):
 
 
 setup(name='audioread',
-      version='2.1.5',
+      version=version.version,
       description='multi-library, cross-platform audio decoding',
       author='Adrian Sampson',
       author_email='adrian@radbox.org',
