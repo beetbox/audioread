@@ -28,8 +28,9 @@ except ImportError:
     import Queue as queue
 
 from . import DecodeError
+from imageio.plugins.ffmpeg import get_exe
 
-COMMANDS = ('ffmpeg', 'avconv')
+COMMANDS = (get_exe(), 'avconv')
 
 
 class FFmpegError(DecodeError):
