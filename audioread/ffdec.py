@@ -258,6 +258,12 @@ class FFmpegAudioFile(object):
 
     def close(self):
         """Close the ffmpeg process used to perform the decoding."""
+        # Check the process's execution status before attempting to kill it.
+        # This fixes an issue on Windows Subsystem for Linux where ffmpeg
+        # closes normally on its own, but never updates `returncode`.
+        if hasattr(self, 'proc'):
+            self.proc.poll()
+
         # Kill the process if it is still running.
         if hasattr(self, 'proc') and self.proc.returncode is None:
             self.proc.kill()
