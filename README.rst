@@ -65,6 +65,10 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.6
+  Fix a "no such process" crash in the FFmpeg backend on Windows Subsystem for
+  Linux (thanks to @llamasoft).
+
 2.1.5
   Properly clean up the file handle when a backend fails to decode a file.
   Fix parsing of "N.M" channel counts in the FFmpeg backend (thanks to @piem).
