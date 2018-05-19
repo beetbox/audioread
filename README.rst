@@ -68,6 +68,7 @@ Version History
 2.1.6
   Fix a "no such process" crash in the FFmpeg backend on Windows Subsystem for
   Linux (thanks to @llamasoft).
+  Avoid suppressing SIGINT in the GStreamer backend (thanks to @lazka).
 
 2.1.5
   Properly clean up the file handle when a backend fails to decode a file.

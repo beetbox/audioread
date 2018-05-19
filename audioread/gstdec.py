@@ -142,7 +142,7 @@ class MainLoopThread(threading.Thread):
     """
     def __init__(self):
         super(MainLoopThread, self).__init__()
-        self.loop = GLib.MainLoop()
+        self.loop = GLib.MainLoop.new(None, False)
         self.daemon = True
 
     def run(self):
