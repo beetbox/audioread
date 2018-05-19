@@ -25,7 +25,7 @@ currently supports:
 .. _wave: http://docs.python.org/library/wave.html
 .. _aifc: http://docs.python.org/library/aifc.html
 .. _sunau: http://docs.python.org/library/sunau.html
-.. _PyGObject: https://wiki.gnome.org/Projects/PyGObject
+.. _PyGObject: https://pygobject.readthedocs.io/
 
 Use the library like so::
 
