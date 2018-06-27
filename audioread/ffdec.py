@@ -264,12 +264,14 @@ class FFmpegAudioFile(object):
             # ffmpeg closes normally on its own, but never updates
             # `returncode`.
             self.proc.poll()
+            self.proc.stdout.close()
+            self.proc.stderr.close()
 
             # Kill the process if it is still running.
             if self.proc.returncode is None:
                 self.proc.kill()
                 self.proc.wait()
-                self.devnull.close()
+        self.devnull.close()
 
     def __del__(self):
         self.close()
