@@ -264,6 +264,8 @@ class FFmpegAudioFile(object):
             # ffmpeg closes normally on its own, but never updates
             # `returncode`.
             self.proc.poll()
+
+            # Close the stdout and stderr streams that were opened by Popen.
             self.proc.stdout.close()
             self.proc.stderr.close()
 
@@ -271,6 +273,9 @@ class FFmpegAudioFile(object):
             if self.proc.returncode is None:
                 self.proc.kill()
                 self.proc.wait()
+
+        # Close the handle to os.devnull, which is opened regardless of if
+        # a subprocess is successfully created
         self.devnull.close()
 
     def __del__(self):
