@@ -265,7 +265,9 @@ class FFmpegAudioFile(object):
             # `returncode`.
             self.proc.poll()
 
-            # Close the stdout and stderr streams that were opened by Popen.
+            # Close the stdout and stderr streams that were opened by Popen,
+            # which should occur regardless of if the process terminated
+            # cleanly.
             self.proc.stdout.close()
             self.proc.stderr.close()
 
