@@ -277,7 +277,7 @@ class FFmpegAudioFile(object):
                 self.proc.wait()
 
         # Close the handle to os.devnull, which is opened regardless of if
-        # a subprocess is successfully created
+        # a subprocess is successfully created.
         self.devnull.close()
 
     def __del__(self):
