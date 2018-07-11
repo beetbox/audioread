@@ -23,6 +23,7 @@ from . import DecodeError
 
 # Produce two-byte (16-bit) output samples.
 TARGET_WIDTH = 2
+PATCH_BYTE = b'\xff'
 
 # Python 3.4 added support for 24-bit (3-byte) samples.
 if sys.version_info > (3, 4, 0):
@@ -130,7 +131,10 @@ class RawAudioFile(object):
             data = self._file.readframes(block_samples)
             if not data:
                 break
-
+            
+            remainder = len(data) % old_width 
+            if remainder != 0 :
+                data = data + PATCH_BYTE*(old_width-remainder)
             # Make sure we have the desired bitdepth and endianness.
             data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
             if self._needs_byteswap and self._file.getcomptype() != 'sowt':
