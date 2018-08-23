@@ -57,8 +57,10 @@ class RawAudioFile(object):
     """An AIFF, WAV, or Au file that can be read by the Python standard
     library modules ``wave``, ``aifc``, and ``sunau``.
     """
-    def __init__(self, filename):
+    block_samples = None
+    def __init__(self, filename, block_samples=1024):
         self._fh = open(filename, 'rb')
+        self.block_samples = block_samples
 
         try:
             self._file = aifc.open(self._fh)
@@ -71,7 +73,7 @@ class RawAudioFile(object):
             return
 
         try:
-            self._file = wave.open(self._fh)
+            self._file = wave.open(self._fh, 'r')
         except wave.Error:
             self._fh.seek(0)
             pass
@@ -107,6 +109,11 @@ class RawAudioFile(object):
         self._file.close()
         self._fh.close()
 
+    def seek(self, pos):
+        """Seek to the position in the file"""
+        # All three libraries have the same method for seeking
+        self._file.setpos(pos)
+
     @property
     def channels(self):
         """Number of audio channels."""
@@ -122,7 +129,9 @@ class RawAudioFile(object):
         """Length of the audio in seconds (a float)."""
         return float(self._file.getnframes()) / self.samplerate
 
-    def read_data(self, block_samples=1024):
+    def read_data(self, block_samples=None):
+        if block_samples is None:
+            block_samples = self.block_samples
         """Generates blocks of PCM data found in the file."""
         old_width = self._file.getsampwidth()
 
