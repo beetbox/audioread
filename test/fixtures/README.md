@@ -17,3 +17,7 @@ if __name__ == '__main__':
 
     wavfile.write('test.wav', 44100, t)
 ```
+
+#### wavetest.wav
+
+Produced with `make_test_wave.py`

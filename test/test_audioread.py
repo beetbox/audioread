@@ -94,7 +94,7 @@ class TestMacca(unittest.TestCase):
             self.assertEqual(bytes(row[0:2]), rowLookup[2])
 
 
-testWaveFilename = os.path.abspath(os.path.join('test', 'fixtures', 'wavetest2.wave'))
+testWaveFilename = os.path.abspath(os.path.join('test', 'fixtures', 'wavetest.wave'))
 waveRowLookup = [
     b'\x00\x00',
     b'f2',
@@ -124,7 +124,6 @@ class TestRawRead(unittest.TestCase):
     def test_open_as_forloop(self):
         result = []
         with audioread.rawread.RawAudioFile(testWaveFilename, block_samples=numSamples) as input_file:
-            print(input_file.channels, input_file.samplerate, input_file.duration)
             for buf in input_file:
                 result.append(buf)
 
