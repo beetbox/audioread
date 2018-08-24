@@ -5,7 +5,7 @@ madAvailible = audioread._mad_available()
 if madAvailible:
     from audioread import maddec
 
-testFilename = os.path.abspath(os.path.join('test', 'fixtures', 'sample.mp3'))
+testFilename = os.path.abspath(os.path.join('test', 'fixtures', 'mp3test.mp3'))
 rowLookup = [
     b'\x01\x00',
     b'w\x00',
@@ -19,10 +19,8 @@ rowLookup = [
     b'\xfb\xff',
 ]
 numSamples = 512
-# print('madAvailible', madAvailible)
-# @unittest.skipIf(not madAvailible, 'Not supported')
 
-@unittest.skip('WIP')
+@unittest.skipIf(not madAvailible, 'Not supported')
 class TestMadDec(unittest.TestCase):
 
     def test_open_as_generator(self):
@@ -51,6 +49,7 @@ class TestMadDec(unittest.TestCase):
         for i, row in enumerate(result):
             self.assertEqual(bytes(row[0:2]), rowLookup[i])
 
+    @unittest.skip('WIP')
     def test_seek(self):
         result = []
         with maddec.MadAudioFile(testFilename, block_samples=numSamples) as input_file:

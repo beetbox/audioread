@@ -1,10 +1,14 @@
 import os
 import unittest
 import audioread
-from audioread import macca
+maccaAvailable = audioread._ca_available()
+print('maccaAvailable', maccaAvailable)
+if maccaAvailable:
+    from audioread import macca
 
+PROJECT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+testFilename = os.path.abspath(os.path.join(PROJECT_DIR, 'test', 'fixtures', 'wavetest.wav'))
 
-testFilename = os.path.abspath(os.path.join('test', 'fixtures', 'wavetest.wav'))
 rowLookup = [
     b'\x00\x00',
     b'f2',
@@ -13,6 +17,7 @@ rowLookup = [
 ]
 numSamples = 512
 
+@unittest.skipIf(not maccaAvailable, 'Not supported')
 class TestMacca(unittest.TestCase):
 
     def test_macca_as_generator(self):

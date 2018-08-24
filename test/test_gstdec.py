@@ -7,7 +7,7 @@ if gstAvailible:
     from audioread import gstdec
 
 
-testFilename = os.path.abspath(os.path.join('test', 'fixtures', 'sample.mp3'))
+testFilename = os.path.abspath(os.path.join('test', 'fixtures', 'mp3test.mp3'))
 rowLookup = [
     b'\x01\x00',
     b'w\x00',
