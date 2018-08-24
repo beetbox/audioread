@@ -195,7 +195,6 @@ class ExtAudioFile(object):
         >>>         do_something(block)
 
     """
-    block_samples = None
     def __init__(self, filename, block_samples=4096):
         url = CFURL(filename)
         try:
@@ -300,8 +299,7 @@ class ExtAudioFile(object):
     def read_data(self, blocksize=None):
         """Generates byte strings reflecting the audio data in the file.
         """
-        if blocksize is None:
-            blocksize = self.block_samples * self._client_fmt.mBytesPerFrame
+        blocksize = blocksize or self.block_samples * self._client_fmt.mBytesPerFrame
 
         frames = ctypes.c_uint(blocksize // self._client_fmt.mBytesPerFrame)
         buf = ctypes.create_string_buffer(blocksize)
@@ -329,7 +327,7 @@ class ExtAudioFile(object):
             yield blob
 
     def seek(self, pos):
-        """Seeks to the position in the file"""
+        """Seek to a frame position in the file."""
         check(_coreaudio.ExtAudioFileSeek(self._obj, pos))
 
 

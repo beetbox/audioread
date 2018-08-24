@@ -1,23 +1,23 @@
 import os
 import unittest
 import audioread
-from audioread import rawread, macca
 
-testMaccaFilename = os.path.abspath(os.path.join('test', 'fixtures', 'test.wav'))
-
-rowLookup = [
-    b'\x00\x00',
-    b'\x9a\x19',
-    b'\x00@',
-    b'3s',
-]
 numSamples = 512
 
-class TestAudioread(unittest.TestCase):
+testFilename = os.path.abspath(os.path.join('test', 'fixtures', 'wavetest.wav'))
+rowLookup = [
+    b'\x00\x00',
+    b'f2',
+    b'\x008',
+    b'3;',
+]
+
+class TestAudioreadWav(unittest.TestCase):
 
     def test_audio_open_as_generator(self):
         result = []
-        with audioread.audio_open(testMaccaFilename, block_samples=numSamples) as f:
+        with audioread.audio_open(testFilename, block_samples=numSamples) as f:
+            print('wav decode class', f.__class__)
             gen = f.read_data()
             try:
                 while True:
@@ -34,7 +34,7 @@ class TestAudioread(unittest.TestCase):
 
     def test_audio_open_as_forloop(self):
         result = []
-        with audioread.audio_open(testMaccaFilename, block_samples=numSamples) as f:
+        with audioread.audio_open(testFilename, block_samples=numSamples) as f:
             self.assertEqual(f.nframes, 2048)
             for buf in f:
                 result.append(buf)
@@ -45,11 +45,23 @@ class TestAudioread(unittest.TestCase):
             self.assertEqual(bytes(row[0:2]), rowLookup[i])
 
 
-class TestMacca(unittest.TestCase):
+mp3TestFilename = os.path.abspath(os.path.join('test', 'fixtures', 'sample.mp3'))
+mp3RowLookup = [
+    b'\x00\x00',
+    b'\x00\x00',
+    b'N\xff',
+    b'\xe8/',
+    b'.5',
+    b'\x089',
+    b'\x00\x00',
+]
 
-    def test_macca_as_generator(self):
+class TestAudioreadMp3(unittest.TestCase):
+
+    def test_audio_open_as_generator(self):
         result = []
-        with macca.ExtAudioFile(testMaccaFilename, block_samples=numSamples) as f:
+        with audioread.audio_open(mp3TestFilename, block_samples=numSamples) as f:
+            print('Mp3 decode class', f.__class__)
             gen = f.read_data()
             try:
                 while True:
@@ -59,93 +71,22 @@ class TestMacca(unittest.TestCase):
                 pass
 
         self.assertEqual(len(bytes(result[0])), numSamples*2)
-        self.assertEqual(len(rowLookup), len(result))
+        self.assertEqual(len(mp3RowLookup), len(result))
         for i, row in enumerate(result):
-            self.assertEqual(bytes(row[0:2]), rowLookup[i])
+            self.assertEqual(bytes(row[0:2]), mp3RowLookup[i])
 
 
-    def test_macca_as_forloop(self):
+    def test_audio_open_as_forloop(self):
         result = []
-        with macca.ExtAudioFile(testMaccaFilename, block_samples=numSamples) as f:
-            self.assertEqual(f.nframes, 2048)
+        with audioread.audio_open(mp3TestFilename, block_samples=numSamples) as f:
+            # self.assertEqual(f.nframes, 4)
             for buf in f:
                 result.append(buf)
 
         self.assertEqual(len(bytes(result[0])), numSamples*2)
-        self.assertEqual(len(rowLookup), len(result))
+        self.assertEqual(len(mp3RowLookup), len(result))
         for i, row in enumerate(result):
-            self.assertEqual(bytes(row[0:2]), rowLookup[i])
-
-    def test_seek(self):
-        result = []
-        with macca.ExtAudioFile(testMaccaFilename, block_samples=numSamples) as input_file:
-            gen = input_file.read_data()
-
-            # move forward
-            row = next(gen)
-            row = next(gen)
-            row = next(gen)
-
-            # go back
-            input_file.seek(512)
-            row = next(gen)
-            self.assertEqual(bytes(row[0:2]), rowLookup[1])
-            row = next(gen)
-            self.assertEqual(bytes(row[0:2]), rowLookup[2])
-
-
-testWaveFilename = os.path.abspath(os.path.join('test', 'fixtures', 'wavetest.wave'))
-waveRowLookup = [
-    b'\x00\x00',
-    b'f2',
-    b'\x008',
-    b'3;',
-]
-
-class TestRawRead(unittest.TestCase):
-
-    def test_open_as_generator(self):
-        result = []
-        with rawread.RawAudioFile(testWaveFilename, block_samples=numSamples) as input_file:
-            gen = input_file.read_data()
-            try:
-                while True:
-                    data = next(gen)
-                    result.append(data)
-            except StopIteration:
-                pass
-
-        self.assertEqual(len(bytes(result[0])), numSamples*2)
-        self.assertEqual(len(rowLookup), len(result))
-        for i, row in enumerate(result):
-            self.assertEqual(bytes(row[0:2]), waveRowLookup[i])
-
-
-    def test_open_as_forloop(self):
-        result = []
-        with audioread.rawread.RawAudioFile(testWaveFilename, block_samples=numSamples) as input_file:
-            for buf in input_file:
-                result.append(buf)
-
-        for i, row in enumerate(result):
-            self.assertEqual(bytes(row[0:2]), waveRowLookup[i])
-
-    def test_seek(self):
-        result = []
-        with rawread.RawAudioFile(testWaveFilename, block_samples=numSamples) as input_file:
-            gen = input_file.read_data()
-
-            # move forward
-            row = next(gen)
-            row = next(gen)
-            row = next(gen)
-
-            # go back
-            input_file.seek(512)
-            row = next(gen)
-            self.assertEqual(bytes(row[0:2]), waveRowLookup[1])
-            row = next(gen)
-            self.assertEqual(bytes(row[0:2]), waveRowLookup[2])
+            self.assertEqual(bytes(row[0:2]), mp3RowLookup[i])
 
 
 if __name__ == '__main__':

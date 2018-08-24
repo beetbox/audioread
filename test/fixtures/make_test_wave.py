@@ -13,7 +13,7 @@ def getData():
 
 
 if __name__ == '__main__':
-    fout = wave.open('test/fixtures/wavetest.wave', 'w')
+    fout = wave.open('test/fixtures/wavetest.wav', 'w')
     data = getData()
     fout.setnchannels(1)
     fout.setframerate(44100)

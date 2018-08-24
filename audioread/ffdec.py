@@ -100,7 +100,7 @@ windows_error_mode_lock = threading.Lock()
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
-    def __init__(self, filename, block_size=4096):
+    def __init__(self, filename, block_samples=4096):
         # On Windows, we need to disable the subprocess's crash dialog
         # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
         # disables this behavior.
@@ -143,7 +143,7 @@ class FFmpegAudioFile(object):
 
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.
-        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+        self.stdout_reader = QueueReaderThread(self.proc.stdout, blocksize=block_samples)
         self.stdout_reader.start()
 
         # Read relevant information from stderr.
@@ -152,7 +152,7 @@ class FFmpegAudioFile(object):
         # Start a separate thread to read the rest of the data from
         # stderr. This (a) avoids filling up the OS buffer and (b)
         # collects the error output for diagnosis.
-        self.stderr_reader = QueueReaderThread(self.proc.stderr)
+        self.stderr_reader = QueueReaderThread(self.proc.stderr, blocksize=block_samples)
         self.stderr_reader.start()
 
     def read_data(self, timeout=10.0):
