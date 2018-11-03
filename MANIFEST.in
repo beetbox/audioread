@@ -2,3 +2,5 @@
 include README.rst
 # Example script.
 include decode.py
+# License
+include LICENSE
