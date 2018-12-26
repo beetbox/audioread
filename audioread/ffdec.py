@@ -265,16 +265,17 @@ class FFmpegAudioFile(object):
             # `returncode`.
             self.proc.poll()
 
+            # Kill the process if it is still running.
+            if self.proc.returncode is None:
+                self.proc.kill()
+                self.proc.wait()
+
             # Close the stdout and stderr streams that were opened by Popen,
             # which should occur regardless of if the process terminated
             # cleanly.
             self.proc.stdout.close()
             self.proc.stderr.close()
 
-            # Kill the process if it is still running.
-            if self.proc.returncode is None:
-                self.proc.kill()
-                self.proc.wait()
 
         # Close the handle to os.devnull, which is opened regardless of if
         # a subprocess is successfully created.
