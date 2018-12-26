@@ -43,7 +43,7 @@ class MadAudioFile(object):
             out = self.mf.read(block_size)
             if not out:
                 break
-            yield out
+            yield bytes(out)
 
     @property
     def samplerate(self):
