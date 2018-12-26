@@ -67,7 +67,7 @@ Version History
 
 2.1.7
   Properly close some filehandles in the FFmpeg backend (thanks to
-  @RyanMarcus).
+  @RyanMarcus and @ssssam).
   The maddec backend now always produces bytes objects, like the other
   backends (thanks to @ssssam).
 
