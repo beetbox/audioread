@@ -68,6 +68,8 @@ Version History
 2.1.7
   Properly close some filehandles in the FFmpeg backend (thanks to
   @RyanMarcus).
+  The maddec backend now always produces bytes objects, like the other
+  backends (thanks to @ssssam).
 
 2.1.6
   Fix a "no such process" crash in the FFmpeg backend on Windows Subsystem for
