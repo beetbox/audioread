@@ -270,6 +270,8 @@ class FFmpegAudioFile(object):
                 self.proc.kill()
                 self.proc.wait()
 
+            # Wait for the stream-reading threads to exit. (They need to
+            # stop reading before we can close the streams.)
             self.stderr_reader.join()
             self.stdout_reader.join()
 
