@@ -270,6 +270,9 @@ class FFmpegAudioFile(object):
                 self.proc.kill()
                 self.proc.wait()
 
+            self.stderr_reader.join()
+            self.stdout_reader.join()
+
             # Close the stdout and stderr streams that were opened by Popen,
             # which should occur regardless of if the process terminated
             # cleanly.
