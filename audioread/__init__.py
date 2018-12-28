@@ -70,14 +70,14 @@ def _mad_available():
         return True
 
 
-def audio_open(path):
+def audio_open(path, block_samples=4096):
     """Open an audio file using a library that is available on this
     system.
     """
     # Standard-library WAV and AIFF readers.
     from . import rawread
     try:
-        return rawread.RawAudioFile(path)
+        return rawread.RawAudioFile(path, block_samples=block_samples)
     except DecodeError:
         pass
 
@@ -85,7 +85,7 @@ def audio_open(path):
     if _ca_available():
         from . import macca
         try:
-            return macca.ExtAudioFile(path)
+            return macca.ExtAudioFile(path, block_samples=block_samples)
         except DecodeError:
             pass
 
@@ -93,7 +93,7 @@ def audio_open(path):
     if _gst_available():
         from . import gstdec
         try:
-            return gstdec.GstAudioFile(path)
+            return gstdec.GstAudioFile(path, block_samples=block_samples)
         except DecodeError:
             pass
 
@@ -101,14 +101,14 @@ def audio_open(path):
     if _mad_available():
         from . import maddec
         try:
-            return maddec.MadAudioFile(path)
+            return maddec.MadAudioFile(path, block_samples=block_samples)
         except DecodeError:
             pass
 
     # FFmpeg.
     from . import ffdec
     try:
-        return ffdec.FFmpegAudioFile(path)
+        return ffdec.FFmpegAudioFile(path, block_samples=block_samples)
     except DecodeError:
         pass
 

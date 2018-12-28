@@ -23,7 +23,8 @@ class UnsupportedError(DecodeError):
 
 class MadAudioFile(object):
     """MPEG audio file decoder using the MAD library."""
-    def __init__(self, filename):
+    def __init__(self, filename, block_samples=4096):
+        self.block_samples = block_samples
         self.fp = open(filename, 'rb')
         self.mf = mad.MadFile(self.fp)
         if not self.mf.total_time():  # Indicates a failed open.
@@ -36,11 +37,12 @@ class MadAudioFile(object):
         if hasattr(self, 'mf'):
             del self.mf
 
-    def read_blocks(self, block_size=4096):
+    def read_blocks(self, block_size=None):
         """Generates buffers containing PCM data for the audio file.
         """
+        block_samples = block_size or self.block_samples
         while True:
-            out = self.mf.read(block_size)
+            out = self.mf.read(block_samples)
             if not out:
                 break
             yield bytes(out)

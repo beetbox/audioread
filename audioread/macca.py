@@ -195,7 +195,7 @@ class ExtAudioFile(object):
         >>>         do_something(block)
 
     """
-    def __init__(self, filename):
+    def __init__(self, filename, block_samples=4096):
         url = CFURL(filename)
         try:
             self._obj = self._open_url(url)
@@ -204,6 +204,7 @@ class ExtAudioFile(object):
             raise
         del url
 
+        self.block_samples = block_samples
         self.closed = False
         self._file_fmt = None
         self._client_fmt = None
@@ -295,9 +296,11 @@ class ExtAudioFile(object):
         newfmt.mBytesPerFrame = newfmt.mBytesPerPacket
         self.set_client_format(newfmt)
 
-    def read_data(self, blocksize=4096):
+    def read_data(self, blocksize=None):
         """Generates byte strings reflecting the audio data in the file.
         """
+        blocksize = blocksize or self.block_samples * self._client_fmt.mBytesPerFrame
+
         frames = ctypes.c_uint(blocksize // self._client_fmt.mBytesPerFrame)
         buf = ctypes.create_string_buffer(blocksize)
 
@@ -322,6 +325,11 @@ class ExtAudioFile(object):
                                ctypes.POINTER(ctypes.c_char))
             blob = data[:size]
             yield blob
+
+    def seek(self, pos):
+        """Seek to a frame position in the file."""
+        check(_coreaudio.ExtAudioFileSeek(self._obj, pos))
+
 
     def close(self):
         """Close the audio file and free associated memory."""
