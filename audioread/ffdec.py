@@ -93,6 +93,21 @@ def popen_multiple(commands, command_args, *args, **kwargs):
                 raise
 
 
+def available():
+    """Detect if the FFmpeg backend can be used on this system."""
+    proc = popen_multiple(
+        COMMANDS,
+        ['-version'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    proc.wait()
+    if proc.returncode == 0:
+        return True
+    else:
+        return False
+
+
 # For Windows error switch management, we need a lock to keep the mode
 # adjustment atomic.
 windows_error_mode_lock = threading.Lock()

@@ -70,6 +70,12 @@ def _mad_available():
         return True
 
 
+def _ffmpeg_available():
+    """Determines whether the ffmpeg program is available."""
+    from . import ffdec
+    return ffdec.available()
+
+
 def audio_open(path):
     """Open an audio file using a library that is available on this
     system.
