@@ -13,7 +13,7 @@
 # included in all copies or substantial portions of the Software.
 
 import os
-from distutils.core import setup
+from setuptools import setup
 import imp
 
 version = imp.load_source('audioread.version', 'audioread/version.py')
@@ -35,6 +35,14 @@ setup(name='audioread',
       long_description=_read('README.rst'),
 
       packages=['audioread'],
+
+      setup_requires=[
+          'pytest-runner'
+      ],
+
+      tests_require=[
+          'pytest'
+      ],
 
       classifiers=[
           'Topic :: Multimedia :: Sound/Audio :: Conversion',
