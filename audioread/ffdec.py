@@ -102,10 +102,7 @@ def available():
         stderr=subprocess.PIPE,
     )
     proc.wait()
-    if proc.returncode == 0:
-        return True
-    else:
-        return False
+    return (proc.returncode == 0)
 
 
 # For Windows error switch management, we need a lock to keep the mode

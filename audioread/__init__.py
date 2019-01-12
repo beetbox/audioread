@@ -14,8 +14,8 @@
 
 """Decode audio files."""
 
+from . import ffdec
 from .version import version as __version__  # noqa
-
 
 class DecodeError(Exception):
     """The base exception class for all decoding errors raised by this
@@ -70,12 +70,6 @@ def _mad_available():
         return True
 
 
-def _ffmpeg_available():
-    """Determines whether the ffmpeg program is available."""
-    from . import ffdec
-    return ffdec.available()
-
-
 def available_backends():
     """Returns a list of backends that are available on this system."""
 
@@ -99,8 +93,7 @@ def available_backends():
         result.append(maddec.MadAudioFile)
 
     # FFmpeg.
-    if _ffmpeg_available():
-        from . import ffdec
+    if ffdec.available():
         result.append(ffdec.FFmpegAudioFile)
 
     return result
