@@ -27,7 +27,7 @@ try:
 except ImportError:
     import Queue as queue
 
-from . import DecodeError
+from .exceptions import DecodeError
 
 COMMANDS = ('ffmpeg', 'avconv')
 
