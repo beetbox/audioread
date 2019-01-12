@@ -272,8 +272,10 @@ class FFmpegAudioFile(object):
 
             # Wait for the stream-reading threads to exit. (They need to
             # stop reading before we can close the streams.)
-            self.stderr_reader.join()
-            self.stdout_reader.join()
+            if hasattr(self, 'stderr_reader'):
+                self.stderr_reader.join()
+            if hasattr(self, 'stdout_reader'):
+                self.stdout_reader.join()
 
             # Close the stdout and stderr streams that were opened by Popen,
             # which should occur regardless of if the process terminated
