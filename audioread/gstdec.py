@@ -311,7 +311,20 @@ class GstAudioFile(object):
             # New data is available from the pipeline! Dump it into our
             # queue (or possibly block if we're full).
             buf = sink.emit('pull-sample').get_buffer()
-            self.queue.put(buf.extract_dup(0, buf.get_size()))
+
+            # We can't use Gst.Buffer.extract() to read the data as it crashes
+            # when called through PyGObject. We also can't use
+            # Gst.Buffer.extract_dup() because we have no way in Python to free
+            # the memory that it returns. Instead we get access to the actual
+            # data via Gst.Memory.map().
+            mem = buf.get_all_memory()
+            success, info = mem.map(Gst.MapFlags.READ)
+            if success:
+                data = info.data
+                mem.unmap(info)
+                self.queue.put(data)
+            else:
+                raise GStreamerError("Unable to map buffer memory while reading the file.")
         return Gst.FlowReturn.OK
 
     def _unkown_type(self, uridecodebin, decodebin, caps):
