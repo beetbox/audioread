@@ -70,6 +70,8 @@ Version History
   @RyanMarcus and @ssssam).
   The maddec backend now always produces bytes objects, like the other
   backends (thanks to @ssssam).
+  Resolve an audio data memory leak in the GStreamer backend (thanks again to
+  @ssssam).
 
 2.1.6
   Fix a "no such process" crash in the FFmpeg backend on Windows Subsystem for
