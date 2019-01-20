@@ -93,19 +93,16 @@ def audio_open(path, backends=None):
     """Open an audio file using a library that is available on this
     system.
 
-    If the 'backends' parameter is set, the function tries all backends in that
-    list in order until one succeeds in reading the file. If all backends fail
-    to read the file, a NoBackendError exception is raised.
+    The optional `backends` parameter can be a list of audio file
+    classes to try opening the file with. If it is not provided,
+    `audio_open` tries all available backends. If you call this function
+    many times, you can avoid the cost of checking for available
+    backends every time by calling `available_backends` once and passing
+    the result to each `audio_open` call.
 
-    If the 'backends' parameter is not set, the function finds all available
-    backends and tries them in turn.
-
-    The process of finding available backends can be slow. If your program
-    calls audio_open() many times, you should call the available_backends()
-    yourself and pass the result to audio_open() each time you call it.
-
+    If all backends fail to read the file, a NoBackendError exception is
+    raised.
     """
-
     if backends is None:
         backends = available_backends()
 
