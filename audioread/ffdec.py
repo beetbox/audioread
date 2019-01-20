@@ -27,7 +27,7 @@ try:
 except ImportError:
     import Queue as queue
 
-from . import DecodeError
+from .exceptions import DecodeError
 
 COMMANDS = ('ffmpeg', 'avconv')
 
@@ -91,6 +91,18 @@ def popen_multiple(commands, command_args, *args, **kwargs):
             if i == len(commands) - 1:
                 # No more commands to try.
                 raise
+
+
+def available():
+    """Detect if the FFmpeg backend can be used on this system."""
+    proc = popen_multiple(
+        COMMANDS,
+        ['-version'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    proc.wait()
+    return (proc.returncode == 0)
 
 
 # For Windows error switch management, we need a lock to keep the mode

@@ -14,19 +14,9 @@
 
 """Decode audio files."""
 
+from . import ffdec
+from .exceptions import DecodeError, NoBackendError
 from .version import version as __version__  # noqa
-
-
-class DecodeError(Exception):
-    """The base exception class for all decoding errors raised by this
-    package.
-    """
-
-
-class NoBackendError(DecodeError):
-    """The file could not be decoded by any backend. Either no backends
-    are available or each available backend failed to decode the file.
-    """
 
 
 def _gst_available():
@@ -70,47 +60,60 @@ def _mad_available():
         return True
 
 
-def audio_open(path):
-    """Open an audio file using a library that is available on this
-    system.
-    """
+def available_backends():
+    """Returns a list of backends that are available on this system."""
+
     # Standard-library WAV and AIFF readers.
     from . import rawread
-    try:
-        return rawread.RawAudioFile(path)
-    except DecodeError:
-        pass
+    result = [rawread.RawAudioFile]
 
     # Core Audio.
     if _ca_available():
         from . import macca
-        try:
-            return macca.ExtAudioFile(path)
-        except DecodeError:
-            pass
+        result.append(macca.ExtAudioFile)
 
     # GStreamer.
     if _gst_available():
         from . import gstdec
-        try:
-            return gstdec.GstAudioFile(path)
-        except DecodeError:
-            pass
+        result.append(gstdec.GstAudioFile)
 
     # MAD.
     if _mad_available():
         from . import maddec
-        try:
-            return maddec.MadAudioFile(path)
-        except DecodeError:
-            pass
+        result.append(maddec.MadAudioFile)
 
     # FFmpeg.
-    from . import ffdec
-    try:
-        return ffdec.FFmpegAudioFile(path)
-    except DecodeError:
-        pass
+    if ffdec.available():
+        result.append(ffdec.FFmpegAudioFile)
+
+    return result
+
+
+def audio_open(path, backends=None):
+    """Open an audio file using a library that is available on this
+    system.
+
+    If the 'backends' parameter is set, the function tries all backends in that
+    list in order until one succeeds in reading the file. If all backends fail
+    to read the file, a NoBackendError exception is raised.
+
+    If the 'backends' parameter is not set, the function finds all available
+    backends and tries them in turn.
+
+    The process of finding available backends can be slow. If your program
+    calls audio_open() many times, you should call the available_backends()
+    yourself and pass the result to audio_open() each time you call it.
+
+    """
+
+    if backends is None:
+        backends = available_backends()
+
+    for BackendClass in backends:
+        try:
+            return BackendClass(path)
+        except DecodeError:
+            pass
 
     # All backends failed!
     raise NoBackendError()

@@ -18,7 +18,8 @@ import sys
 import ctypes
 import ctypes.util
 import copy
-from . import DecodeError
+
+from .exceptions import DecodeError
 
 
 # CoreFoundation and CoreAudio libraries along with their function

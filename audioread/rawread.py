@@ -19,7 +19,8 @@ import sunau
 import audioop
 import struct
 import sys
-from . import DecodeError
+
+from .exceptions import DecodeError
 
 # Produce two-byte (16-bit) output samples.
 TARGET_WIDTH = 2

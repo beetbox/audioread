@@ -55,7 +55,8 @@ from gi.repository import GLib, Gst
 import sys
 import threading
 import os
-from . import DecodeError
+
+from .exceptions import DecodeError
 
 try:
     import queue
