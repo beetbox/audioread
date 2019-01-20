@@ -53,6 +53,11 @@ exception is raised. This exception is only used when the file type is
 unsupported by the backends; if the file doesn't exist, a standard ``IOError``
 will be raised.
 
+A second optional parameter to ``audio_open`` specifies which backends to try
+(instead of trying them all, which is the default). You can use the
+``available_backends`` function to get a list backends that are usable on the
+current system.
+
 Audioread is "universal" and supports both Python 2 (2.6+) and Python 3
 (3.2+).
 
@@ -72,6 +77,8 @@ Version History
   backends (thanks to @ssssam).
   Resolve an audio data memory leak in the GStreamer backend (thanks again to
   @ssssam).
+  You can now optionally specify which specific backends ``audio_open`` should
+  try (thanks once again to @ssssam).
 
 2.1.6
   Fix a "no such process" crash in the FFmpeg backend on Windows Subsystem for
