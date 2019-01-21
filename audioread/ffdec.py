@@ -53,12 +53,12 @@ class ReadTimeoutError(FFmpegError):
 
 
 class QueueReaderThread(threading.Thread):
-    """A thread that consumes data from a filehandle and sends the data
-    over a Queue.
+    """A thread that consumes data from a file-like object and sends the
+    data over a Queue.
     """
-    def __init__(self, fh, blocksize=1024, discard=False):
+    def __init__(self, file, blocksize=1024, discard=False):
         super(QueueReaderThread, self).__init__()
-        self.fh = fh
+        self.file = file
         self.blocksize = blocksize
         self.daemon = True
         self.discard = discard
@@ -66,12 +66,37 @@ class QueueReaderThread(threading.Thread):
 
     def run(self):
         while True:
-            data = self.fh.read(self.blocksize)
+            data = self.file.read(self.blocksize)
             if not self.discard:
                 self.queue.put(data)
             if not data:
                 # Stream closed (EOF).
                 break
+
+
+class WriterThread(threading.Thread):
+    """A thread that reads data from one file-like object and writes it
+    to another, one block at a time.
+    """
+    def __init__(self, writefile, readfile=None, blocksize=1024):
+        """Create a thread that reads data from `readfile` and writes it
+        to `writefile`.
+        """
+        super(WriterThread, self).__init__()
+        self.writefile = writefile
+        self.readfile = readfile
+        self.blocksize = blocksize
+        self.daemon = True
+
+    def run(self):
+        while True:
+            data = self.readfile.read(self.blocksize)
+            if data:
+                self.writefile.write(data)
+            else:
+                # EOF.
+                break
+        self.writefile.close()
 
 
 def popen_multiple(commands, command_args, *args, **kwargs):
@@ -112,7 +137,19 @@ windows_error_mode_lock = threading.Lock()
 
 class FFmpegAudioFile(object):
     """An audio file decoded by the ffmpeg command-line utility."""
-    def __init__(self, filename, block_size=4096):
+    def __init__(self, filename=None, audio=None, block_size=4096):
+        """Start decoding an audio file.
+
+        Provide either `filename` to read from the filesystem or
+        `audio`, a file-like object, to read from an open stream.
+        """
+        if filename:
+            self.from_file = True
+        elif audio:
+            self.from_file = False
+        else:
+            raise ValueError('one of `filename` or `audio` must be provided')
+
         # On Windows, we need to disable the subprocess's crash dialog
         # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
         # disables this behavior.
@@ -129,14 +166,17 @@ class FFmpegAudioFile(object):
                 previous_error_mode | SEM_NOGPFAULTERRORBOX
             )
 
+        # Start the subprocess.
         try:
+            in_arg = filename if self.from_file else '-'
             self.devnull = open(os.devnull)
+            in_stream = self.devnull if self.from_file else subprocess.PIPE
             self.proc = popen_multiple(
                 COMMANDS,
-                ['-i', filename, '-f', 's16le', '-'],
+                ['-i', in_arg, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                stdin=self.devnull,
+                stdin=in_stream,
             )
 
         except OSError:
@@ -152,6 +192,14 @@ class FFmpegAudioFile(object):
                     ctypes.windll.kernel32.SetErrorMode(previous_error_mode)
                 finally:
                     windows_error_mode_lock.release()
+
+        # If the input data comes from a stream, start a thread to write
+        # the compressed audio to the subprocess's standard input
+        # stream.
+        if not self.from_file:
+            self.stdin_writer = WriterThread(self.proc.stdin, audio,
+                                             block_size)
+            self.stdin_writer.start()
 
         # Start another thread to consume the standard output of the
         # process, which contains raw audio data.

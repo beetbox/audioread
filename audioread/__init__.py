@@ -114,3 +114,18 @@ def audio_open(path, backends=None):
 
     # All backends failed!
     raise NoBackendError()
+
+
+def decode(audio):
+    """Given a file-like object containing encoded audio data, create an
+    audio file object that produces its *raw* data.
+    """
+    # FFmpeg.
+    from . import ffdec
+    try:
+        return ffdec.FFmpegAudioFile(audio=audio)
+    except DecodeError:
+        pass
+
+    # All backends failed!
+    raise NoBackendError()

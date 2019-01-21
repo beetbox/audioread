@@ -21,21 +21,31 @@ import wave
 import contextlib
 
 
-def decode(filename):
-    filename = os.path.abspath(os.path.expanduser(filename))
-    if not os.path.exists(filename):
-        print("File not found.", file=sys.stderr)
-        sys.exit(1)
+def decode(filename=None):
+    """Decode audio from a file on disk or, if no file is specified,
+    from the standard input.
+    """
+    if filename:
+        filename = os.path.abspath(os.path.expanduser(filename))
+        if not os.path.exists(filename):
+            print("File not found.", file=sys.stderr)
+            sys.exit(1)
 
     try:
-        with audioread.audio_open(filename) as f:
+        if filename:
+            f = audioread.audio_open(filename)
+        else:
+            f = audioread.decode(sys.stdin)
+
+        with f:
             print('Input file: %i channels at %i Hz; %.1f seconds.' %
                   (f.channels, f.samplerate, f.duration),
                   file=sys.stderr)
             print('Backend:', str(type(f).__module__).split('.')[1],
                   file=sys.stderr)
 
-            with contextlib.closing(wave.open(filename + '.wav', 'w')) as of:
+            outname = filename or 'out'
+            with contextlib.closing(wave.open(outname + '.wav', 'w')) as of:
                 of.setnchannels(f.channels)
                 of.setframerate(f.samplerate)
                 of.setsampwidth(2)
@@ -49,4 +59,7 @@ def decode(filename):
 
 
 if __name__ == '__main__':
-    decode(sys.argv[1])
+    if sys.argv[1:]:
+        decode(sys.argv[1])
+    else:
+        decode()
