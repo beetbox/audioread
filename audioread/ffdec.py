@@ -87,7 +87,7 @@ def popen_multiple(commands, command_args, *args, **kwargs):
         cmd = [command] + command_args
         try:
             return subprocess.Popen(cmd, *args, **kwargs)
-        except OSError:
+        except (OSError, subprocess.CalledProcessError):
             if i == len(commands) - 1:
                 # No more commands to try.
                 raise
@@ -100,6 +100,7 @@ def available():
         ['-version'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=subprocess.CREATE_NO_WINDOW
     )
     proc.wait()
     return (proc.returncode == 0)
@@ -137,6 +138,7 @@ class FFmpegAudioFile(object):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 stdin=self.devnull,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
 
         except OSError:
