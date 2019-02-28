@@ -99,8 +99,7 @@ def available():
         COMMANDS,
         ['-version'],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        creationflags=subprocess.CREATE_NO_WINDOW
+        stderr=subprocess.PIPE
     )
     proc.wait()
     return (proc.returncode == 0)
@@ -137,8 +136,7 @@ class FFmpegAudioFile(object):
                 ['-i', filename, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                stdin=self.devnull,
-                creationflags=subprocess.CREATE_NO_WINDOW
+                stdin=self.devnull
             )
 
         except OSError:
