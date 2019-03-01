@@ -86,11 +86,17 @@ def popen_multiple(commands, command_args, *args, **kwargs):
     for i, command in enumerate(commands):
         cmd = [command] + command_args
         try:
-            return subprocess.Popen(cmd, *args, **kwargs)
+            if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                process = subprocess.Popen(cmd, *args, creationflags= \
+                                           subprocess.CREATE_NO_WINDOW,
+                                           **kwargs)
+            else:
+                process = subprocess.Popen(cmd, *args, **kwargs)
         except OSError:
             if i == len(commands) - 1:
                 # No more commands to try.
                 raise
+        return process
 
 
 def available():
@@ -99,7 +105,7 @@ def available():
         COMMANDS,
         ['-version'],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.PIPE
     )
     proc.wait()
     return (proc.returncode == 0)
@@ -136,7 +142,7 @@ class FFmpegAudioFile(object):
                 ['-i', filename, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                stdin=self.devnull,
+                stdin=self.devnull
             )
 
         except OSError:
