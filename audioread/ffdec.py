@@ -295,7 +295,6 @@ class FFmpegAudioFile(object):
             self.proc.stdout.close()
             self.proc.stderr.close()
 
-
         # Close the handle to os.devnull, which is opened regardless of if
         # a subprocess is successfully created.
         self.devnull.close()
