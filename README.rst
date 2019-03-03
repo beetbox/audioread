@@ -79,6 +79,7 @@ Version History
   @ssssam).
   You can now optionally specify which specific backends ``audio_open`` should
   try (thanks once again to @ssssam).
+  On Windows, avoid opening a console window to run FFmpeg (thanks to @flokX).
 
 2.1.6
   Fix a "no such process" crash in the FFmpeg backend on Windows Subsystem for
