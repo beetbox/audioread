@@ -31,6 +31,11 @@ from .exceptions import DecodeError
 
 COMMANDS = ('ffmpeg', 'avconv')
 
+if sys.platform == "win32":
+    PROC_FLAGS = 0x08000000
+else:
+    PROC_FLAGS = 0
+
 
 class FFmpegError(DecodeError):
     pass
@@ -100,6 +105,7 @@ def available():
         ['-version'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=PROC_FLAGS,
     )
     proc.wait()
     return (proc.returncode == 0)
@@ -137,6 +143,7 @@ class FFmpegAudioFile(object):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 stdin=self.devnull,
+                creationflags=PROC_FLAGS,
             )
 
         except OSError:
