@@ -31,6 +31,11 @@ from .exceptions import DecodeError
 
 COMMANDS = ('ffmpeg', 'avconv')
 
+if sys.platform == "win32":
+    PROC_FLAGS = 0x08000000
+else:
+    PROC_FLAGS = 0
+
 
 class FFmpegError(DecodeError):
     pass
@@ -86,17 +91,11 @@ def popen_multiple(commands, command_args, *args, **kwargs):
     for i, command in enumerate(commands):
         cmd = [command] + command_args
         try:
-            if hasattr(subprocess, "CREATE_NO_WINDOW"):
-                process = subprocess.Popen(cmd, *args, creationflags= \
-                                           subprocess.CREATE_NO_WINDOW,
-                                           **kwargs)
-            else:
-                process = subprocess.Popen(cmd, *args, **kwargs)
+            return subprocess.Popen(cmd, *args, **kwargs)
         except OSError:
             if i == len(commands) - 1:
                 # No more commands to try.
                 raise
-        return process
 
 
 def available():
@@ -106,6 +105,7 @@ def available():
         ['-version'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=PROC_FLAGS,
     )
     proc.wait()
     return (proc.returncode == 0)
@@ -143,6 +143,7 @@ class FFmpegAudioFile(object):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 stdin=self.devnull,
+                creationflags=PROC_FLAGS,
             )
 
         except OSError:
