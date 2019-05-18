@@ -70,6 +70,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.8
+  Fix an unhandled ``OSError`` when FFmpeg is not installed.
+
 2.1.7
   Properly close some filehandles in the FFmpeg backend (thanks to
   @RyanMarcus and @ssssam).
