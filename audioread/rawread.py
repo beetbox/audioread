@@ -41,7 +41,7 @@ class BitWidthError(DecodeError):
 
 
 def byteswap(s):
-    """Swaps the endianness of the bytesting s, which must be an array
+    """Swaps the endianness of the byte string, which must be an array
     of shorts (16-bit signed integers). This is probably less efficient
     than it should be.
     """
