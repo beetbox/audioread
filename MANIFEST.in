@@ -4,3 +4,5 @@ include README.rst
 include decode.py
 # License
 include LICENSE
+# Include full test suite
+recursive-include test/ *
