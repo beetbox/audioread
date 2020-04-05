@@ -202,7 +202,7 @@ class FFmpegAudioFile(object):
                         # Nothing interesting has happened for a while --
                         # FFmpeg is probably hanging.
                         raise ReadTimeoutError('ffmpeg output: {}'.format(
-                            ''.join(self.stderr_reader.queue.queue)
+                            b''.join(self.stderr_reader.queue.queue)
                         ))
                     else:
                         start_time = end_time
