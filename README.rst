@@ -70,6 +70,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+2.1.9
+  Work correctly with GStreamer 1.18 and later (thanks to @ssssam)
+
 2.1.8
   Fix an unhandled ``OSError`` when FFmpeg is not installed.
 
