@@ -321,7 +321,14 @@ class GstAudioFile(object):
             mem = buf.get_all_memory()
             success, info = mem.map(Gst.MapFlags.READ)
             if success:
-                data = info.data
+                if isinstance(info.data, memoryview):
+                    # We need to copy the data as the memoryview is released
+                    # when we call mem.unmap()
+                    data = bytes(info.data)
+                else:
+                    # GStreamer Python bindings <= 1.16 return a copy of the
+                    # data as bytes()
+                    data = info.data
                 mem.unmap(info)
                 self.queue.put(data)
             else:
