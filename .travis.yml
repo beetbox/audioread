@@ -14,6 +14,7 @@ addons:
 
 install:
     - python setup.py install
+    - pip install tox
 
 script:
-    - pytest
+    - tox

@@ -36,11 +36,6 @@ setup(name='audioread',
 
       packages=['audioread'],
 
-      tests_require=[
-          'pytest-runner',
-          'pytest'
-      ],
-
       classifiers=[
           'Topic :: Multimedia :: Sound/Audio :: Conversion',
           'Intended Audience :: Developers',
