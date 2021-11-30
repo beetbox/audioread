@@ -45,8 +45,6 @@ file:
     >>>     print f.channels
     >>>     print f.duration
 """
-from __future__ import with_statement
-from __future__ import division
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -55,19 +53,10 @@ from gi.repository import GLib, Gst
 import sys
 import threading
 import os
+import queue
+from urllib.parse import quote
 
 from .exceptions import DecodeError
-
-try:
-    import queue
-except ImportError:
-    import Queue as queue
-
-try:
-    from urllib.parse import quote
-except ImportError:
-    from urllib import quote
-
 
 QUEUE_SIZE = 10
 BUFFER_SIZE = 10
@@ -83,7 +72,7 @@ class GStreamerError(DecodeError):
 class UnknownTypeError(GStreamerError):
     """Raised when Gstreamer can't decode the given file type."""
     def __init__(self, streaminfo):
-        super(UnknownTypeError, self).__init__(
+        super().__init__(
             "can't decode stream: " + streaminfo
         )
         self.streaminfo = streaminfo
@@ -99,7 +88,7 @@ class NoStreamError(GStreamerError):
     were found.
     """
     def __init__(self):
-        super(NoStreamError, self).__init__('no audio streams found')
+        super().__init__('no audio streams found')
 
 
 class MetadataMissingError(GStreamerError):
@@ -114,7 +103,7 @@ class IncompleteGStreamerError(GStreamerError):
     principal plugin packages) are missing.
     """
     def __init__(self):
-        super(IncompleteGStreamerError, self).__init__(
+        super().__init__(
             'missing GStreamer base plugins'
         )
 
@@ -142,7 +131,7 @@ class MainLoopThread(threading.Thread):
     """A daemon thread encapsulating a Gobject main loop.
     """
     def __init__(self):
-        super(MainLoopThread, self).__init__()
+        super().__init__()
         self.loop = GLib.MainLoop.new(None, False)
         self.daemon = True
 
@@ -152,7 +141,7 @@ class MainLoopThread(threading.Thread):
 
 # The decoder.
 
-class GstAudioFile(object):
+class GstAudioFile:
     """Reads raw audio data from any audio file that Gstreamer
     knows how to decode.
 
@@ -373,16 +362,13 @@ class GstAudioFile(object):
 
     # Iteration.
 
-    def next(self):
+    def __next__(self):
         # Wait for data from the Gstreamer callbacks.
         val = self.queue.get()
         if val == SENTINEL:
             # End of stream.
             raise StopIteration
         return val
-
-    # For Python 3 compatibility.
-    __next__ = next
 
     def __iter__(self):
         return self
@@ -417,11 +403,6 @@ class GstAudioFile(object):
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(Gst.State.NULL)
-
-            # Delete the pipeline object. This seems to be necessary on Python
-            # 2, but not Python 3 for some reason: on 3.5, at least, the
-            # pipeline gets dereferenced automatically.
-            del self.pipeline
 
     def __del__(self):
         self.close()

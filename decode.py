@@ -13,7 +13,6 @@
 # included in all copies or substantial portions of the Software.
 
 """Command-line tool to decode audio files to WAV files."""
-from __future__ import print_function
 import audioread
 import sys
 import os
