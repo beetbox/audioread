@@ -21,7 +21,7 @@ class UnsupportedError(DecodeError):
     """The file is not readable by MAD."""
 
 
-class MadAudioFile(object):
+class MadAudioFile:
     """MPEG audio file decoder using the MAD library."""
     def __init__(self, filename):
         self.fp = open(filename, 'rb')

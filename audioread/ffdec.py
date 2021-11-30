@@ -62,7 +62,7 @@ class QueueReaderThread(threading.Thread):
     over a Queue.
     """
     def __init__(self, fh, blocksize=1024, discard=False):
-        super(QueueReaderThread, self).__init__()
+        super().__init__()
         self.fh = fh
         self.blocksize = blocksize
         self.daemon = True
@@ -121,7 +121,7 @@ def available():
 windows_error_mode_lock = threading.Lock()
 
 
-class FFmpegAudioFile(object):
+class FFmpegAudioFile:
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename, block_size=4096):
         # On Windows, we need to disable the subprocess's crash dialog
@@ -227,7 +227,7 @@ class FFmpegAudioFile(object):
             line = line.strip().lower()
 
             if 'no such file' in line:
-                raise IOError('file not found')
+                raise OSError('file not found')
             elif 'invalid data found' in line:
                 raise UnsupportedError()
             elif 'duration:' in line:

@@ -45,8 +45,6 @@ file:
     >>>     print f.channels
     >>>     print f.duration
 """
-from __future__ import with_statement
-from __future__ import division
 
 import gi
 gi.require_version('Gst', '1.0')
@@ -83,7 +81,7 @@ class GStreamerError(DecodeError):
 class UnknownTypeError(GStreamerError):
     """Raised when Gstreamer can't decode the given file type."""
     def __init__(self, streaminfo):
-        super(UnknownTypeError, self).__init__(
+        super().__init__(
             "can't decode stream: " + streaminfo
         )
         self.streaminfo = streaminfo
@@ -99,7 +97,7 @@ class NoStreamError(GStreamerError):
     were found.
     """
     def __init__(self):
-        super(NoStreamError, self).__init__('no audio streams found')
+        super().__init__('no audio streams found')
 
 
 class MetadataMissingError(GStreamerError):
@@ -114,7 +112,7 @@ class IncompleteGStreamerError(GStreamerError):
     principal plugin packages) are missing.
     """
     def __init__(self):
-        super(IncompleteGStreamerError, self).__init__(
+        super().__init__(
             'missing GStreamer base plugins'
         )
 
@@ -142,7 +140,7 @@ class MainLoopThread(threading.Thread):
     """A daemon thread encapsulating a Gobject main loop.
     """
     def __init__(self):
-        super(MainLoopThread, self).__init__()
+        super().__init__()
         self.loop = GLib.MainLoop.new(None, False)
         self.daemon = True
 
@@ -152,7 +150,7 @@ class MainLoopThread(threading.Thread):
 
 # The decoder.
 
-class GstAudioFile(object):
+class GstAudioFile:
     """Reads raw audio data from any audio file that Gstreamer
     knows how to decode.
 

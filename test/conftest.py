@@ -23,7 +23,7 @@ import pytest
 def audiofile(request):
     """Fixture that provides an AudiofileSpec instance."""
     spec_path = os.path.join(DATADIR, request.param + '.json')
-    with open(spec_path, 'r') as f:
+    with open(spec_path) as f:
         spec = json.load(f)
     result = AudiofileSpec(**spec)
     return result

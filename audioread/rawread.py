@@ -26,10 +26,7 @@ from .exceptions import DecodeError
 TARGET_WIDTH = 2
 
 # Python 3.4 added support for 24-bit (3-byte) samples.
-if sys.version_info > (3, 4, 0):
-    SUPPORTED_WIDTHS = (1, 2, 3, 4)
-else:
-    SUPPORTED_WIDTHS = (1, 2, 4)
+SUPPORTED_WIDTHS = (1, 2, 3, 4)
 
 
 class UnsupportedError(DecodeError):
@@ -54,7 +51,7 @@ def byteswap(s):
     return b''.join(parts)
 
 
-class RawAudioFile(object):
+class RawAudioFile:
     """An AIFF, WAV, or Au file that can be read by the Python standard
     library modules ``wave``, ``aifc``, and ``sunau``.
     """
