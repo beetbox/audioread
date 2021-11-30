@@ -14,6 +14,7 @@
 
 """Decode MPEG audio files with MAD (via pymad)."""
 import mad
+
 from . import DecodeError
 
 

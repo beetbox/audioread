@@ -13,12 +13,11 @@
 # included in all copies or substantial portions of the Software.
 
 """Uses standard-library modules to read AIFF, AIFF-C, and WAV files."""
-import wave
 import aifc
-import sunau
 import audioop
 import struct
-import sys
+import sunau
+import wave
 
 from .exceptions import DecodeError
 

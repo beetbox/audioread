@@ -13,11 +13,11 @@
 # included in all copies or substantial portions of the Software.
 
 """Read audio files using CoreAudio on Mac OS X."""
-import os
-import sys
+import copy
 import ctypes
 import ctypes.util
-import copy
+import os
+import sys
 
 from .exceptions import DecodeError
 

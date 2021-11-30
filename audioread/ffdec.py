@@ -16,16 +16,13 @@
 output.
 """
 
-import sys
-import subprocess
+import os
+import queue
 import re
+import subprocess
+import sys
 import threading
 import time
-import os
-try:
-    import queue
-except ImportError:
-    import Queue as queue
 
 from .exceptions import DecodeError
 

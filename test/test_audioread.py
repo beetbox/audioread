@@ -13,12 +13,6 @@
 # included in all copies or substantial portions of the Software.
 
 
-import json
-import os
-import sys
-
-import pytest
-
 import audioread
 
 

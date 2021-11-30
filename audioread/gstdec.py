@@ -53,19 +53,10 @@ from gi.repository import GLib, Gst
 import sys
 import threading
 import os
+import queue
+from urllib.parse import quote
 
 from .exceptions import DecodeError
-
-try:
-    import queue
-except ImportError:
-    import Queue as queue
-
-try:
-    from urllib.parse import quote
-except ImportError:
-    from urllib import quote
-
 
 QUEUE_SIZE = 10
 BUFFER_SIZE = 10
