@@ -362,16 +362,13 @@ class GstAudioFile:
 
     # Iteration.
 
-    def next(self):
+    def __next__(self):
         # Wait for data from the Gstreamer callbacks.
         val = self.queue.get()
         if val == SENTINEL:
             # End of stream.
             raise StopIteration
         return val
-
-    # For Python 3 compatibility.
-    __next__ = next
 
     def __iter__(self):
         return self
@@ -406,11 +403,6 @@ class GstAudioFile:
 
             # Halt the pipeline (closing file).
             self.pipeline.set_state(Gst.State.NULL)
-
-            # Delete the pipeline object. This seems to be necessary on Python
-            # 2, but not Python 3 for some reason: on 3.5, at least, the
-            # pipeline gets dereferenced automatically.
-            del self.pipeline
 
     def __del__(self):
         self.close()
