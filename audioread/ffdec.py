@@ -23,6 +23,7 @@ import subprocess
 import sys
 import threading
 import time
+from io import DEFAULT_BUFFER_SIZE
 
 from .exceptions import DecodeError
 
@@ -120,7 +121,7 @@ windows_error_mode_lock = threading.Lock()
 
 class FFmpegAudioFile:
     """An audio file decoded by the ffmpeg command-line utility."""
-    def __init__(self, filename, block_size=4096):
+    def __init__(self, filename, block_size=DEFAULT_BUFFER_SIZE):
         # On Windows, we need to disable the subprocess's crash dialog
         # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
         # disables this behavior.
