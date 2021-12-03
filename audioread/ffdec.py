@@ -16,7 +16,6 @@
 output.
 """
 
-import os
 import queue
 import re
 import subprocess
@@ -139,13 +138,12 @@ class FFmpegAudioFile:
             )
 
         try:
-            self.devnull = open(os.devnull)
             self.proc = popen_multiple(
                 COMMANDS,
                 ['-i', filename, '-f', 's16le', '-'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                stdin=self.devnull,
+                stdin=subprocess.DEVNULL,
                 creationflags=PROC_FLAGS,
             )
 
@@ -304,10 +302,6 @@ class FFmpegAudioFile:
             # cleanly.
             self.proc.stdout.close()
             self.proc.stderr.close()
-
-        # Close the handle to os.devnull, which is opened regardless of if
-        # a subprocess is successfully created.
-        self.devnull.close()
 
     def __del__(self):
         self.close()
