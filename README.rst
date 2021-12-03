@@ -72,6 +72,7 @@ Version History
 3.0.0
   Drop support for Python 2 and older versions of Python 3. The library now
   requires Python 3.6+.
+  Increase default block size in FFmpegAudioFile to get slightly faster file reading.
 
 2.1.9
   Work correctly with GStreamer 1.18 and later (thanks to @ssssam).
