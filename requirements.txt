@@ -1,0 +1,5 @@
+mad==0.2.2
+
+# Testing
+pytest==7.1.1
+setuptools==56.0.0
