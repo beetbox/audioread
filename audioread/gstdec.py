@@ -189,7 +189,7 @@ class GstAudioFile:
         # The callback to connect the input.
         self.dec.connect("pad-added", self._pad_added)
         self.dec.connect("no-more-pads", self._no_more_pads)
-        # And a callback if decoding failes.
+        # And a callback if decoding fails.
         self.dec.connect("unknown-type", self._unkown_type)
 
         # Configure the output.
