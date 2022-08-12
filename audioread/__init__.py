@@ -59,8 +59,10 @@ def _mad_available():
     else:
         return True
 
-# A place to store available backends
+
+# A cache for the available backends.
 BACKENDS = []
+
 
 def available_backends(flush_cache=False):
     """Returns a list of backends that are available on this system.
