@@ -1,0 +1,26 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "audioread"
+author = "Adrian Sampson"
+author-email = "adrian@radbox.org"
+home-page = "https://github.com/beetbox/audioread"
+description-file = "README.rst"
+requires-python = ">=3.6"
+classifiers = [
+    'Topic :: Multimedia :: Sound/Audio :: Conversion',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+]
+
+[tool.flit.metadata.requires-extra]
+test = [
+    "tox"
+]
