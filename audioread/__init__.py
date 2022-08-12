@@ -59,9 +59,22 @@ def _mad_available():
     else:
         return True
 
+# A place to store available backends
+BACKENDS = []
 
-def available_backends():
-    """Returns a list of backends that are available on this system."""
+def available_backends(flush_cache=False):
+    """Returns a list of backends that are available on this system.
+
+    The list of backends is cached after the first call.
+    If the parameter `flush_cache` is set to `True`, then the cache
+    will be flushed and the backend list will be reconstructed.
+    """
+    global BACKENDS
+    if flush:
+        BACKENDS.clear()
+
+    if BACKENDS:
+        return BACKENDS
 
     # Standard-library WAV and AIFF readers.
     from . import rawread
@@ -86,7 +99,10 @@ def available_backends():
     if ffdec.available():
         result.append(ffdec.FFmpegAudioFile)
 
-    return result
+    # Cache the backends we found
+    BACKENDS.extend(result)
+
+    return BACKENDS
 
 
 def audio_open(path, backends=None):
