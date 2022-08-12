@@ -69,8 +69,7 @@ def available_backends(flush_cache=False):
     If the parameter `flush_cache` is set to `True`, then the cache
     will be flushed and the backend list will be reconstructed.
     """
-    global BACKENDS
-    if flush:
+    if flush_cache:
         BACKENDS.clear()
 
     if BACKENDS:
