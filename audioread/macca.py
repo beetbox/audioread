@@ -20,6 +20,7 @@ import os
 import sys
 
 from .exceptions import DecodeError
+from .base import AudioFile
 
 
 # CoreFoundation and CoreAudio libraries along with their function
@@ -184,7 +185,7 @@ class AudioBufferList(ctypes.Structure):
 
 # Main functionality.
 
-class ExtAudioFile:
+class ExtAudioFile(AudioFile):
     """A CoreAudio "extended audio file". Reads information and raw PCM
     audio data from any file that CoreAudio knows how to decode.
 

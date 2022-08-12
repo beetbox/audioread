@@ -25,6 +25,7 @@ import time
 from io import DEFAULT_BUFFER_SIZE
 
 from .exceptions import DecodeError
+from .base import AudioFile
 
 COMMANDS = ('ffmpeg', 'avconv')
 
@@ -118,7 +119,7 @@ def available():
 windows_error_mode_lock = threading.Lock()
 
 
-class FFmpegAudioFile:
+class FFmpegAudioFile(AudioFile):
     """An audio file decoded by the ffmpeg command-line utility."""
     def __init__(self, filename, block_size=DEFAULT_BUFFER_SIZE):
         # On Windows, we need to disable the subprocess's crash dialog
