@@ -74,6 +74,7 @@ Version History
   requires Python 3.6+.
   Increase default block size in FFmpegAudioFile to get slightly faster file reading.
   Cache backends for faster lookup (thanks to @bmcfee).
+  Audio file classes now inherit from a common base ``AudioFile`` class.
 
 2.1.9
   Work correctly with GStreamer 1.18 and later (thanks to @ssssam).
