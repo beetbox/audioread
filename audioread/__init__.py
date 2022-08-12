@@ -69,10 +69,8 @@ def available_backends(flush_cache=False):
     If the parameter `flush_cache` is set to `True`, then the cache
     will be flushed and the backend list will be reconstructed.
     """
-    if flush_cache:
-        BACKENDS.clear()
 
-    if BACKENDS:
+    if BACKENDS and not flush_cache:
         return BACKENDS
 
     # Standard-library WAV and AIFF readers.
@@ -99,7 +97,7 @@ def available_backends(flush_cache=False):
         result.append(ffdec.FFmpegAudioFile)
 
     # Cache the backends we found
-    BACKENDS.extend(result)
+    BACKENDS[:] = result
 
     return BACKENDS
 
