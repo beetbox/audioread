@@ -20,6 +20,7 @@ import sunau
 import wave
 
 from .exceptions import DecodeError
+from .base import AudioFile
 
 # Produce two-byte (16-bit) output samples.
 TARGET_WIDTH = 2
@@ -50,7 +51,7 @@ def byteswap(s):
     return b''.join(parts)
 
 
-class RawAudioFile:
+class RawAudioFile(AudioFile):
     """An AIFF, WAV, or Au file that can be read by the Python standard
     library modules ``wave``, ``aifc``, and ``sunau``.
     """

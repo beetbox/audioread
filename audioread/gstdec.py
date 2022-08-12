@@ -57,6 +57,7 @@ import queue
 from urllib.parse import quote
 
 from .exceptions import DecodeError
+from .base import AudioFile
 
 QUEUE_SIZE = 10
 BUFFER_SIZE = 10
@@ -141,7 +142,7 @@ class MainLoopThread(threading.Thread):
 
 # The decoder.
 
-class GstAudioFile:
+class GstAudioFile(AudioFile):
     """Reads raw audio data from any audio file that Gstreamer
     knows how to decode.
 
