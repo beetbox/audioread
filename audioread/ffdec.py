@@ -110,7 +110,7 @@ def available():
     except OSError:
         return False
     else:
-        proc.wait()
+        proc.communicate()
         return proc.returncode == 0
 
 
