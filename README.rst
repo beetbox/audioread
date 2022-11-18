@@ -69,6 +69,9 @@ convert compressed audio files to WAV files.
 Version History
 ---------------
 
+3.0.1
+  Fix a possible deadlock when FFmpeg's version output produces too much data.
+
 3.0.0
   Drop support for Python 2 and older versions of Python 3. The library now
   requires Python 3.6+.
