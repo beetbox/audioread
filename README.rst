@@ -66,6 +66,17 @@ Example
 The included ``decode.py`` script demonstrates using this package to
 convert compressed audio files to WAV files.
 
+Troubleshooting
+---------------
+
+NoBackendError despite a backend (specifically FFmpeg) being installed
+------------------------------------------------------------------------
+
+Make sure that you can execute `ffmpeg` properly. If you are getting a segmentation
+fault, try installing `ffmpeg` with your OS package manager (apt, dnf, yum, etc.)
+or with `conda` (`https://anaconda.org/conda-forge/ffmpeg`). Make sure then that
+`ffmpeg` is executable.
+
 Version History
 ---------------
 
