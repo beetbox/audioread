@@ -69,13 +69,12 @@ convert compressed audio files to WAV files.
 Troubleshooting
 ---------------
 
-NoBackendError despite a backend (specifically FFmpeg) being installed
-------------------------------------------------------------------------
-
-Make sure that you can execute `ffmpeg` properly. If you are getting a segmentation
-fault, try installing `ffmpeg` with your OS package manager (apt, dnf, yum, etc.)
-or with `conda` (`https://anaconda.org/conda-forge/ffmpeg`). Make sure then that
-`ffmpeg` is executable.
+A ``NoBackendError`` exception means that the library could not find one of
+the libraries or tools it needs to decode audio. This could mean, for example,
+that you have a broken installation of `FFmpeg`_. To check, try typing
+``ffmpeg -version`` in your shell. If that gives you an error, try installing
+FFmpeg with your OS's package manager (e.g., apt or yum) or `using Conda
+<https://anaconda.org/conda-forge/ffmpeg>`_.
 
 Version History
 ---------------
