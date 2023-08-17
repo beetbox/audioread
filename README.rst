@@ -58,7 +58,7 @@ A second optional parameter to ``audio_open`` specifies which backends to try
 ``available_backends`` function to get a list backends that are usable on the
 current system.
 
-Audioread supports Python 3 (3.6+).
+Audioread supports Python 3 (3.8+).
 
 Example
 -------
