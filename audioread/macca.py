@@ -137,9 +137,9 @@ class CFObject:
 
 class CFURL(CFObject):
     def __init__(self, filename):
+        filename = os.path.abspath(os.path.expanduser(filename))
         if not isinstance(filename, bytes):
             filename = filename.encode(sys.getfilesystemencoding())
-        filename = os.path.abspath(os.path.expanduser(filename))
         url = _corefoundation.CFURLCreateFromFileSystemRepresentation(
             0, filename, len(filename), False
         )
