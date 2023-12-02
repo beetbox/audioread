@@ -14,5 +14,5 @@
 
 """Version data for the audioread package."""
 
-version = '3.0.1'
+version = '3.0.2'
 short_version = '3.0'

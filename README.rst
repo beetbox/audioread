@@ -76,6 +76,9 @@ FFmpeg with your OS's package manager (e.g., apt or yum) or `using Conda
 Version History
 ---------------
 
+3.0.2
+  Support path-like objects (not just strings) in the Core Audio backend.
+
 3.0.1
   Fix a possible deadlock when FFmpeg's version output produces too much data.
 
