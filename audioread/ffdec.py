@@ -20,6 +20,7 @@ import queue
 import re
 import subprocess
 import sys
+import os
 import threading
 import time
 from io import DEFAULT_BUFFER_SIZE
@@ -27,7 +28,7 @@ from io import DEFAULT_BUFFER_SIZE
 from .exceptions import DecodeError
 from .base import AudioFile
 
-COMMANDS = ('ffmpeg', 'avconv')
+COMMANDS = ['ffmpeg', 'avconv']
 
 if sys.platform == "win32":
     PROC_FLAGS = 0x08000000
@@ -76,7 +77,32 @@ class QueueReaderThread(threading.Thread):
                 # Stream closed (EOF).
                 break
 
+def find_ffmpeg_path(input_path):
+    '''
+    input_path: str
+    check wheather the given path is a valid ffmpeg path or contains ffmpeg in all operating systems
+    return: str if path is valid and None if it is invalid
+    '''
+    if os.path.isdir(input_path):
+        '''
+        if the given path is a directory, then check for the existence of ffmpeg or ffmpeg.exe
+        '''
+        if os.path.exists(input_path + os.sep + 'ffmpeg'):
+            return input_path + os.sep + 'ffmpeg'
+        elif os.path.exists(input_path + os.sep + 'ffmpeg.exe'):
+            return input_path + os.sep + 'ffmpeg.exe'
+        else:
+            return None
+    else:
+        if os.path.exists(input_path):
+            return input_path
+        elif os.path.exists(input_path + '.exe'):
+            return input_path + '.exe'
+        else:
+            return None
+    
 
+        
 def popen_multiple(commands, command_args, *args, **kwargs):
     """Like `subprocess.Popen`, but can try multiple commands in case
     some are not available.
@@ -121,7 +147,7 @@ windows_error_mode_lock = threading.Lock()
 
 class FFmpegAudioFile(AudioFile):
     """An audio file decoded by the ffmpeg command-line utility."""
-    def __init__(self, filename, block_size=DEFAULT_BUFFER_SIZE):
+    def __init__(self, filename, block_size=DEFAULT_BUFFER_SIZE,ffmpeg_path=None):
         # On Windows, we need to disable the subprocess's crash dialog
         # in case it dies. Passing SEM_NOGPFAULTERRORBOX to SetErrorMode
         # disables this behavior.
@@ -137,6 +163,13 @@ class FFmpegAudioFile(AudioFile):
             ctypes.windll.kernel32.SetErrorMode(
                 previous_error_mode | SEM_NOGPFAULTERRORBOX
             )
+        
+
+        if ffmpeg_path is not None:
+            global COMMANDS
+            ffmpeg_path = find_ffmpeg_path(ffmpeg_path)
+            if ffmpeg_path is not None:
+                COMMANDS = [ffmpeg_path] + COMMANDS
 
         try:
             self.proc = popen_multiple(
