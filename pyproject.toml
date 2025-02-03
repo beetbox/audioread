@@ -8,7 +8,10 @@ authors = [
     {name = "Adrian Sampson", email = "adrian@radbox.org"}
 ]
 readme = "README.rst"
-requires-python = ">=3.6"
+requires-python = ">=3.8"
+dependencies = [
+    "audioop-lts; python_version >= '3.13'"
+]
 dynamic = ["version", "description"]
 urls.Home = "https://github.com/beetbox/audioread"
 classifiers = [
@@ -19,6 +22,8 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'License :: OSI Approved :: MIT License',
 ]
 license = {file = "LICENSE"}
@@ -26,4 +31,8 @@ license = {file = "LICENSE"}
 [project.optional-dependencies]
 test = [
     "tox"
+]
+legacy = [
+    "standard-aifc; python_version >= '3.13'",
+    "standard-sunau; python_version >= '3.13'"
 ]

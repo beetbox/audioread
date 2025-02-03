@@ -13,11 +13,10 @@
 # included in all copies or substantial portions of the Software.
 
 """Uses standard-library modules to read AIFF, AIFF-C, and WAV files."""
-import aifc
 import audioop
 import struct
-import sunau
 import wave
+import warnings
 
 from .exceptions import DecodeError
 from .base import AudioFile
@@ -54,19 +53,12 @@ def byteswap(s):
 class RawAudioFile(AudioFile):
     """An AIFF, WAV, or Au file that can be read by the Python standard
     library modules ``wave``, ``aifc``, and ``sunau``.
+
+    On Python 3.13 and later, ``aifc`` and ``sunau`` support require
+    installing the ``standard-aifc`` and ``standard-sunau`` packages, respectively.
     """
     def __init__(self, filename):
         self._fh = open(filename, 'rb')
-
-        try:
-            self._file = aifc.open(self._fh)
-        except aifc.Error:
-            # Return to the beginning of the file to try the next reader.
-            self._fh.seek(0)
-        else:
-            self._needs_byteswap = True
-            self._check()
-            return
 
         try:
             self._file = wave.open(self._fh)
@@ -78,15 +70,38 @@ class RawAudioFile(AudioFile):
             self._check()
             return
 
+        # The following are deprecated formats and may not be supported
         try:
-            self._file = sunau.open(self._fh)
-        except sunau.Error:
-            self._fh.seek(0)
-            pass
+            import aifc
+        except ImportError:
+            warnings.warn("aifc module not found; AIFF files will not be supported. "
+                          "You may need to install the standard-aifc package.")
         else:
-            self._needs_byteswap = True
-            self._check()
-            return
+            try:
+                self._file = aifc.open(self._fh)
+            except aifc.Error:
+                # Return to the beginning of the file to try the next reader.
+                self._fh.seek(0)
+            else:
+                self._needs_byteswap = True
+                self._check()
+                return
+
+        try:
+            import sunau
+        except ImportError:
+            warnings.warn("sunau module not found; Au files will not be supported. "
+                          "You may need to install the standard-sunau package.")
+        else:
+            try:
+                self._file = sunau.open(self._fh)
+            except sunau.Error:
+                self._fh.seek(0)
+                pass
+            else:
+                self._needs_byteswap = True
+                self._check()
+                return
 
         # None of the three libraries could open the file.
         self._fh.close()

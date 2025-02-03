@@ -8,8 +8,8 @@ currently supports:
 - `Core Audio`_ on Mac OS X via `ctypes`_. (PyObjC not required.)
 - `MAD`_ via the `pymad`_ bindings.
 - `FFmpeg`_ or `Libav`_ via its command-line interface.
-- The standard library `wave`_, `aifc`_, and `sunau`_ modules (for
-  uncompressed audio formats).
+- The standard library `wave`_ module (for
+  uncompressed audio formats).  Legacy formats `aifc`_ and `sunau`_ are also optionally supported, see the note below.
 
 .. _Gstreamer: http://gstreamer.freedesktop.org/
 .. _gst-python: http://gstreamer.freedesktop.org/modules/gst-python.html
@@ -72,6 +72,18 @@ that you have a broken installation of `FFmpeg`_. To check, try typing
 ``ffmpeg -version`` in your shell. If that gives you an error, try installing
 FFmpeg with your OS's package manager (e.g., apt or yum) or `using Conda
 <https://anaconda.org/conda-forge/ffmpeg>`_.
+
+Legacy formats
+--------------
+The `aifc`_ and `sunau`_ modules were deprecated and removed from the standard
+Python distribution in version 3.13.
+Support for `aifc` and `sunau` formats is still available through `deadlib`_.
+To install audioread with continued support for these formats, you can
+use the following command::
+
+    python -m pip install audioread[legacy]
+
+.. _deadlib: https://github.com/youknowone/python-deadlib
 
 Version History
 ---------------
