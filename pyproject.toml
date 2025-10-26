@@ -17,6 +17,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "License :: OSI Approved :: MIT License",
 ]
+dependencies = [
+    "standard-aifc; python_version >= '3.13'",
+    "standard-sunau; python_version >= '3.13'",
+]
 
 [project.urls]
 Homepage = "https://github.com/beetbox/audioread"
