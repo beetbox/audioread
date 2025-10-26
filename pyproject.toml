@@ -1,6 +1,6 @@
 [project]
 name = "audioread"
-version = "3.1.0a1"
+version = "3.1.0"
 description = "Multi-library, cross-platform audio decoding."
 authors = [
     { name = "Adrian Sampson", email = "adrian@radbox.org" },
