@@ -14,8 +14,8 @@
 
 """Uses standard-library modules to read AIFF, AIFF-C, and WAV files."""
 import aifc
+import array
 import audioop
-import struct
 import sunau
 import wave
 
@@ -39,16 +39,13 @@ class BitWidthError(DecodeError):
 
 def byteswap(s):
     """Swaps the endianness of the bytestring s, which must be an array
-    of shorts (16-bit signed integers). This is probably less efficient
-    than it should be.
+    of shorts (16-bit signed integers).
     """
     assert len(s) % 2 == 0
-    parts = []
-    for i in range(0, len(s), 2):
-        chunk = s[i:i + 2]
-        newchunk = struct.pack('<h', *struct.unpack('>h', chunk))
-        parts.append(newchunk)
-    return b''.join(parts)
+    values = array.array('h')
+    values.frombytes(s)
+    values.byteswap()
+    return values.tobytes()
 
 
 class RawAudioFile(AudioFile):
@@ -123,6 +120,10 @@ class RawAudioFile(AudioFile):
     def read_data(self, block_samples=1024):
         """Generates blocks of PCM data found in the file."""
         old_width = self._file.getsampwidth()
+        needs_conversion = old_width != TARGET_WIDTH
+        needs_byteswap = (
+            self._needs_byteswap and self._file.getcomptype() != 'sowt'
+        )
 
         while True:
             data = self._file.readframes(block_samples)
@@ -130,8 +131,9 @@ class RawAudioFile(AudioFile):
                 break
 
             # Make sure we have the desired bitdepth and endianness.
-            data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
-            if self._needs_byteswap and self._file.getcomptype() != 'sowt':
+            if needs_conversion:
+                data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
+            if needs_byteswap:
                 # Big-endian data. Swap endianness.
                 data = byteswap(data)
             yield data
