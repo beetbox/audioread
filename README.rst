@@ -76,6 +76,15 @@ FFmpeg with your OS's package manager (e.g., apt or yum) or `using Conda
 Version History
 ---------------
 
+Upcoming
+  Optimize raw backend PCM conversion path in `audioread/rawread.py`. This skips
+  a Python loop and can increase loading times by up to a factor of 150x.
+
+3.1.0
+  Official support for Python 3.12 and 3.13!
+  Replaced deprecated aifc and sunau modules, as they have been removed from
+  Python 3.13 onwards (see https://peps.python.org/pep-0594/).
+
 3.0.2
   Support path-like objects (not just strings) in the Core Audio backend.
 
