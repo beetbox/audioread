@@ -104,7 +104,7 @@ def available_backends(flush_cache=False):
     return BACKENDS
 
 
-def audio_open(path, backends=None):
+def audio_open(path, backends=None,ffmpeg_path=None):
     """Open an audio file using a library that is available on this
     system.
 
@@ -123,6 +123,8 @@ def audio_open(path, backends=None):
 
     for BackendClass in backends:
         try:
+            if BackendClass is ffdec.FFmpegAudioFile:
+                return BackendClass(path,ffmpeg_path=ffmpeg_path)
             return BackendClass(path)
         except DecodeError:
             pass
