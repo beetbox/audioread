@@ -130,6 +130,13 @@ class RawAudioFile(AudioFile):
             if not data:
                 break
 
+            # If the len of the data is not divisible by the width, bytes should be added to the tail
+            remainder = len(data) % old_width 
+            if remainder != 0:
+                #data = data + patch_byte * (old_width - remainder)
+                print("[WARNING] The file might be broken")
+                break
+
             # Make sure we have the desired bitdepth and endianness.
             if needs_conversion:
                 data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
