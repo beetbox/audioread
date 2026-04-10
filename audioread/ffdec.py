@@ -262,15 +262,14 @@ class FFmpegAudioFile(AudioFile):
 
         # Duration.
         match = re.search(
-            r'duration: (\d+):(\d+):(\d+).(\d)', s
+            r'duration: (\d+):(\d+):(\d+\.\d+)', s
         )
         if match:
-            durparts = list(map(int, match.groups()))
+            durparts = match.groups()
             duration = (
-                durparts[0] * 60 * 60 +
-                durparts[1] * 60 +
-                durparts[2] +
-                float(durparts[3]) / 10
+                int(durparts[0]) * 60 * 60 +
+                int(durparts[1]) * 60 +
+                float(durparts[2])
             )
             self.duration = duration
         else:
