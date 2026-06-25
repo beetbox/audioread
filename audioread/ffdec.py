@@ -229,7 +229,7 @@ class FFmpegAudioFile(AudioFile):
                 raise UnsupportedError()
             elif 'duration:' in line:
                 out_parts.append(line)
-            elif 'audio:' in line:
+            elif 'stream #' in line and 'audio:' in line:
                 out_parts.append(line)
                 self._parse_info(''.join(out_parts))
                 break
