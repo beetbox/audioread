@@ -162,19 +162,24 @@ class FFmpegAudioFile(AudioFile):
                 finally:
                     windows_error_mode_lock.release()
 
-        # Start another thread to consume the standard output of the
-        # process, which contains raw audio data.
-        self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
-        self.stdout_reader.start()
+        try:
+            # Start another thread to consume the standard output of the
+            # process, which contains raw audio data.
+            self.stdout_reader = QueueReaderThread(self.proc.stdout, block_size)
+            self.stdout_reader.start()
 
-        # Read relevant information from stderr.
-        self._get_info()
+            # Read relevant information from stderr.
+            self._get_info()
 
-        # Start a separate thread to read the rest of the data from
-        # stderr. This (a) avoids filling up the OS buffer and (b)
-        # collects the error output for diagnosis.
-        self.stderr_reader = QueueReaderThread(self.proc.stderr)
-        self.stderr_reader.start()
+            # Start a separate thread to read the rest of the data from
+            # stderr. This (a) avoids filling up the OS buffer and (b)
+            # collects the error output for diagnosis.
+            self.stderr_reader = QueueReaderThread(self.proc.stderr)
+            self.stderr_reader.start()
+        except BaseException:
+            # A partially constructed reader still owns its process and pipes.
+            self.close()
+            raise
 
     def read_data(self, timeout=10.0):
         """Read blocks of raw PCM data from the file."""
@@ -292,10 +297,13 @@ class FFmpegAudioFile(AudioFile):
                 self.proc.wait()
 
             # Wait for the stream-reading threads to exit. (They need to
-            # stop reading before we can close the streams.)
-            if hasattr(self, 'stderr_reader'):
+            # stop reading before we can close the streams.) A failed start()
+            # leaves ident as None; completed threads retain their identifier.
+            if (hasattr(self, 'stderr_reader') and
+                    self.stderr_reader.ident is not None):
                 self.stderr_reader.join()
-            if hasattr(self, 'stdout_reader'):
+            if (hasattr(self, 'stdout_reader') and
+                    self.stdout_reader.ident is not None):
                 self.stdout_reader.join()
 
             # Close the stdout and stderr streams that were opened by Popen,
