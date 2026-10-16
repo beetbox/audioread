@@ -63,6 +63,38 @@ Example
 The included ``decode.py`` script demonstrates using this package to
 convert compressed audio files to WAV files.
 
+Converting to a NumPy array
+---------------------------
+
+With NumPy installed separately, you can load the decoded audio into an array::
+
+    import audioread
+    import numpy as np
+
+    with audioread.audio_open(filename) as f:
+        samplerate = f.samplerate
+        channels = f.channels
+        pcm = b"".join(f)
+
+    audio = np.frombuffer(pcm, dtype="<i2").reshape(-1, channels)
+
+The ``<i2`` dtype specifies signed 16-bit little-endian samples, independent of
+the machine's native byte order. Channels are interleaved in the PCM stream,
+so ``audio`` has shape ``(frames, channels)``: ``audio[:, 0]`` is the first
+channel. Mono audio still has one column, and empty audio has zero rows.
+Concatenate the buffers before reshaping: an individual buffer need not end
+at a complete multichannel frame.
+
+The array views the immutable ``pcm`` bytes and is read-only. Use
+``audio.copy()`` if you need a writable integer array, or convert to floating
+point samples in the range ``[-1.0, 1.0)`` with::
+
+    audio_float = audio.astype(np.float32) / 32768.0
+
+This example holds the whole decoded file in memory. For large files, process
+the buffers incrementally instead, retaining any incomplete frame between
+buffers when grouping samples by channel.
+
 Troubleshooting
 ---------------
 
