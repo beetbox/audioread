@@ -48,7 +48,7 @@ class UnsupportedError(FFmpegError):
 
 
 class NotInstalledError(FFmpegError):
-    """Could not find the ffmpeg binary."""
+    """Could not find or load the ffmpeg binary."""
 
 
 class ReadTimeoutError(FFmpegError):
@@ -221,9 +221,12 @@ class FFmpegAudioFile(AudioFile):
             if isinstance(line, bytes):
                 line = line.decode('utf8', 'ignore')
 
-            line = line.strip().lower()
+            message = line.strip()
+            line = message.lower()
 
-            if 'no such file' in line:
+            if 'error while loading shared libraries:' in line:
+                raise NotInstalledError(message)
+            elif 'no such file' in line:
                 raise OSError('file not found')
             elif 'invalid data found' in line:
                 raise UnsupportedError()
