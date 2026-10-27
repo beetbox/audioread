@@ -57,7 +57,7 @@ class RawAudioFile(AudioFile):
 
         try:
             self._file = aifc.open(self._fh)
-        except aifc.Error:
+        except (aifc.Error, EOFError):
             # Return to the beginning of the file to try the next reader.
             self._fh.seek(0)
         else:
@@ -67,7 +67,7 @@ class RawAudioFile(AudioFile):
 
         try:
             self._file = wave.open(self._fh)
-        except wave.Error:
+        except (wave.Error, EOFError):
             self._fh.seek(0)
             pass
         else:
@@ -77,7 +77,7 @@ class RawAudioFile(AudioFile):
 
         try:
             self._file = sunau.open(self._fh)
-        except sunau.Error:
+        except (sunau.Error, EOFError):
             self._fh.seek(0)
             pass
         else:
