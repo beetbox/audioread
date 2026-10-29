@@ -77,6 +77,8 @@ Version History
 ---------------
 
 Upcoming
+  Read FFmpeg stream parameters from the selected output, so files with
+  multiple audio tracks report the decoded PCM's channels and sample rate.
   Optimize raw backend PCM conversion path in `audioread/rawread.py`. This skips
   a Python loop and can increase loading times by up to a factor of 150x.
 

@@ -211,6 +211,7 @@ class FFmpegAudioFile(AudioFile):
         relevant information, and parses it.
         """
         out_parts = []
+        in_output = False
         while True:
             line = self.proc.stderr.readline()
             if not line:
@@ -227,9 +228,13 @@ class FFmpegAudioFile(AudioFile):
                 raise OSError('file not found')
             elif 'invalid data found' in line:
                 raise UnsupportedError()
-            elif 'duration:' in line:
+            elif line.startswith('output #'):
+                in_output = True
+            elif line.startswith('duration:'):
                 out_parts.append(line)
-            elif 'audio:' in line:
+            elif in_output and re.match(r'stream #\S+: audio:', line):
+                # FFmpeg can select a later input audio stream. Its output
+                # descriptor matches the PCM we read from stdout.
                 out_parts.append(line)
                 self._parse_info(''.join(out_parts))
                 break
