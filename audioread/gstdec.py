@@ -50,6 +50,8 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GLib, Gst
 
+from contextlib import nullcontext
+
 import sys
 import threading
 import os
@@ -258,9 +260,11 @@ class GstAudioFile(AudioFile):
         self.got_caps = True
         info = pad.get_current_caps().get_structure(0)
 
-        # Stream attributes.
-        self.channels = info.get_int('channels')[1]
-        self.samplerate = info.get_int('rate')[1]
+        # Newer Gst bindings return a context manager that owns the structure.
+        # Older bindings return Gst.Structure directly.
+        with info if hasattr(info, '__enter__') else nullcontext(info) as structure:
+            self.channels = structure.get_int('channels')[1]
+            self.samplerate = structure.get_int('rate')[1]
 
         # Query duration.
         success, length = pad.get_peer().query_duration(Gst.Format.TIME)
