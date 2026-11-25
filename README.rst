@@ -77,6 +77,8 @@ Version History
 ---------------
 
 Upcoming
+  Correct byte order when decoding mu-law AU and mu-law/A-law AIFF-C files
+  to signed 16-bit little-endian PCM.
   Optimize raw backend PCM conversion path in `audioread/rawread.py`. This skips
   a Python loop and can increase loading times by up to a factor of 150x.
 
