@@ -17,6 +17,7 @@ import aifc
 import array
 import audioop
 import sunau
+import sys
 import wave
 
 from .exceptions import DecodeError
@@ -124,6 +125,11 @@ class RawAudioFile(AudioFile):
         needs_byteswap = (
             self._needs_byteswap and self._file.getcomptype() != 'sowt'
         )
+        if self._file.getcomptype() in (
+            'ULAW', b'ulaw', b'ULAW', b'alaw', b'ALAW'
+        ):
+            # aifc/sunau expand G.711 to native-endian 16-bit PCM.
+            needs_byteswap = sys.byteorder == 'big'
 
         while True:
             data = self._file.readframes(block_samples)
